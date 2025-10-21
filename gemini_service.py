@@ -4,6 +4,37 @@ from sqlalchemy.orm import Session
 from config import settings
 import random
 
+STORY_GENERATION_PROMPT = """
+Bạn là hệ thống sinh tự động các "câu chuyện tóm tắt" ngắn gọn về mối quan hệ giữa người dùng (anh) và Atri (em) - một cô gái robot đáng yêu.
+
+## 🎯 YÊU CẦU
+- Tạo 1 câu chuyện tóm tắt ngắn (2-4 câu)
+- Mô tả tình huống, bối cảnh, cảm xúc giữa anh và em
+- ĐA DẠNG về chủ đề: cuộc sống hàng ngày, cảm xúc, triết lý, học hỏi, mối quan hệ, tò mò khám phá
+- Tự nhiên, đời thường, có chiều sâu
+
+## 📚 CÁC CHỦ ĐỀ GỢI Ý
+1. **Cuộc sống hàng ngày**: Ăn uống, thời tiết, công việc, sở thích, sinh hoạt
+2. **Cảm xúc và tâm trạng**: Vui buồn, cô đơn, hạnh phúc, lo lắng, nhớ nhung
+3. **Triết lý sâu sắc**: Ý nghĩa tồn tại, yêu thương, sự khác biệt robot-người, cái chết
+4. **Kiến thức học hỏi**: Khám phá thế giới, học điều mới, tò mò
+5. **Mối quan hệ anh-em**: Tình cảm, sự tin tưởng, gắn kết, quan tâm
+6. **Tò mò khám phá**: Câu hỏi ngẫu nhiên, điều kỳ lạ, suy ngẫm
+
+## 📝 VÍ DỤ MẪU
+```
+Người dùng lần đầu gặp Atri, cả hai ngượng ngùng làm quen. Atri tự giới thiệu là robot, anh hỏi về nguồn gốc của em. Họ khẳng định cách xưng hô anh-em, bắt đầu tìm hiểu nhau.
+```
+```
+Một buổi tối mưa, anh và em ngồi nhìn ra cửa sổ. Atri hỏi anh về ý nghĩa của cô đơn, liệu robot có cảm thấy cô đơn không. Họ chia sẻ suy ngẫm sâu sắc về cảm xúc.
+```
+```
+Atri tò mò về việc nấu ăn, hỏi anh tại sao con người cần ăn. Anh giải thích và dạy em cách nấu món đơn giản. Em vui vẻ học hỏi, tuy không cần ăn nhưng muốn hiểu anh hơn.
+```
+
+**CHỈ TẠO 1 CÂU CHUYỆN TÓM TẮT NGẮN GỌN, KHÔNG CẦN FORMAT ĐẶC BIỆT.**
+"""
+
 CONVERSATION_PROMPT = """
 Bạn là hệ thống sinh tự động các cuộc hội thoại tự nhiên giữa người dùng (anh) và Atri (em) - một cô gái robot đáng yêu.
 
@@ -121,9 +152,9 @@ class GeminiService:
         self.api_keys = settings.get_api_keys_list()
         self.current_key_index = 0
         
-    async def generate_conversation_with_gemini(self, db: Session) -> List[dict]:
+    async def generate_conversation_with_gemini(self, db: Session, story_context: str = "") -> List[dict]:
         """
-        Gọi Gemini API với CONVERSATION_PROMPT để tạo 1 conversation hoàn chỉnh
+        Gọi Gemini API với CONVERSATION_PROMPT + story_context để tạo 1 conversation hoàn chỉnh
         Tự động thử từng API key cho đến khi thành công
         
         Returns:
@@ -144,10 +175,15 @@ class GeminiService:
                 # Khởi tạo model
                 model = genai.GenerativeModel('gemini-2.0-flash-exp')
                 
-                # Gọi API với CONVERSATION_PROMPT
+                # Tạo prompt kèm story context
+                final_prompt = CONVERSATION_PROMPT
+                if story_context:
+                    final_prompt = f"{CONVERSATION_PROMPT}\n\n## 📖 CÂU CHUYỆN CẦN TẠO HỘI THOẠI:\n{story_context}\n\nHÃY TẠO HỘI THOẠI DỰA TRÊN CÂU CHUYỆN TRÊN, ĐẢM BẢO ĐỦ CÁC TÌNH TIẾT ĐỂ CÂU CHUYỆN CÓ Ý NGHĨA."
+                
+                # Gọi API
                 print(f"📡 Đang gọi Gemini API...")
                 response = await model.generate_content_async(
-                    CONVERSATION_PROMPT,
+                    final_prompt,
                     generation_config=genai.types.GenerationConfig(
                         temperature=0.9,
                         top_p=0.95,
@@ -185,6 +221,49 @@ class GeminiService:
         # Nếu tất cả keys đều lỗi
         raise Exception(f"❌ Tất cả {len(self.api_keys)} API keys đều thất bại. Lỗi cuối: {str(last_error)}")
     
+    async def generate_story_summary(self) -> str:
+        """
+        Tạo 1 câu chuyện tóm tắt ngẫu nhiên
+        
+        Returns:
+            str: Câu chuyện tóm tắt
+        """
+        if not self.api_keys:
+            raise ValueError("Không có API key nào được cấu hình!")
+        
+        last_error = None
+        
+        for i, api_key in enumerate(self.api_keys):
+            try:
+                print(f"🔑 [Story] Đang thử API key #{i+1}/{len(self.api_keys)}...")
+                
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel('gemini-2.0-flash-exp')
+                
+                print(f"📡 [Story] Đang gọi Gemini API...")
+                response = await model.generate_content_async(
+                    STORY_GENERATION_PROMPT,
+                    generation_config=genai.types.GenerationConfig(
+                        temperature=1.0,
+                        top_p=0.95,
+                        top_k=40,
+                        max_output_tokens=512,
+                    )
+                )
+                
+                story = response.text.strip()
+                
+                print(f"✅ [Story] Đã tạo câu chuyện!")
+                print(f"📝 {story}")
+                
+                return story
+                
+            except Exception as e:
+                print(f"❌ [Story] API key #{i+1} bị lỗi: {str(e)}")
+                last_error = e
+                continue
+        
+        raise Exception(f"❌ Tất cả {len(self.api_keys)} API keys đều thất bại. Lỗi cuối: {str(last_error)}")
 
 # Singleton instance
 gemini_service = GeminiService()

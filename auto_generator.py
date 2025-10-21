@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy.orm import Session
 from typing import Optional
-
+from pinecone_service import pinecone_service
 from database import SessionLocal
 from gemini_service import gemini_service
 from conversation_service import conversation_service
@@ -24,8 +24,15 @@ class AutoDatasetGenerator:
         db: Session
     ) -> dict:
         """
-        Gọi Gemini API với CONVERSATION_PROMPT để tạo 1 conversation hoàn chỉnh
-        LƯU NGAY VÀO DATABASE sau khi hoàn thành
+        FLOW:
+        1. Tạo câu chuyện tóm tắt
+        2. Convert story → vector
+        3. Check trùng lặp (similarity > 0.85)
+        4. Nếu KHÔNG trùng:
+           - Lưu vector vào Pinecone
+           - Đưa story vào prompt
+           - Gemini tạo messages[]
+           - Lưu messages vào Neon
         
         Returns:
             dict: Thông tin về conversation đã tạo
@@ -35,39 +42,84 @@ class AutoDatasetGenerator:
         print(f"{'='*60}\n")
         
         try:
-            # Gọi Gemini API để tạo conversation
-            print(f"📡 Đang gọi Gemini API với CONVERSATION_PROMPT...")
-            messages = await gemini_service.generate_conversation_with_gemini(db)
+            # ===== BƯỚC 1: Tạo câu chuyện tóm tắt =====
+            print(f"📖 BƯỚC 1: Tạo câu chuyện tóm tắt...")
+            story = await gemini_service.generate_story_summary()
             
-            # Kiểm tra messages có hợp lệ không
+            # ===== BƯỚC 2: Convert story → vector =====
+            print(f"\n🔢 BƯỚC 2: Convert story → vector...")
+            embedding = await pinecone_service.get_story_embedding(story)
+            
+            if embedding is None:
+                print(f"⚠️  Không tạo được embedding, bỏ qua kiểm tra trùng")
+            
+            # ===== BƯỚC 3: Check trùng lặp =====
+            print(f"\n🔍 BƯỚC 3: Kiểm tra trùng lặp...")
+            is_duplicate, similarity = await pinecone_service.check_story_duplicate(
+                story=story,
+                embedding=embedding
+            )
+            
+            if is_duplicate:
+                print(f"❌ Câu chuyện BỊ TRÙNG (similarity: {similarity:.4f} > 0.85)")
+                print(f"⏭️  BỎ QUA câu chuyện này\n")
+                return {
+                    "status": "skipped",
+                    "reason": "duplicate",
+                    "similarity": similarity,
+                    "story": story
+                }
+            
+            print(f"✅ Câu chuyện HỢP LỆ (similarity: {similarity:.4f} ≤ 0.85)")
+            
+            # ===== BƯỚC 4: Tạo messages[] từ story =====
+            print(f"\n💬 BƯỚC 4: Tạo hội thoại từ câu chuyện...")
+            messages = await gemini_service.generate_conversation_with_gemini(
+                db=db,
+                story_context=story
+            )
+            
             if not messages or not isinstance(messages, list):
                 raise ValueError("Response từ Gemini không hợp lệ!")
             
-            # Hiển thị preview
-            print(f"\n📊 ĐÃ NHẬN ĐƯỢC {len(messages)} messages từ Gemini:")
-            for i, msg in enumerate(messages[:4], 1):  # Hiển thị 4 messages đầu
+            print(f"✅ Đã nhận {len(messages)} messages từ Gemini")
+            
+            # Preview
+            for i, msg in enumerate(messages[:4], 1):
                 role = msg.get('role', 'unknown')
                 content = msg.get('content', '')[:50]
                 print(f"  [{i}] {role}: {content}...")
             if len(messages) > 4:
                 print(f"  ... và {len(messages) - 4} messages khác")
             
-            # ===== LƯU NGAY VÀO DATABASE =====
-            print(f"\n💾 Đang lưu conversation vào Neon Database...")
+            # ===== BƯỚC 5: Lưu vào Neon Database =====
+            print(f"\n💾 BƯỚC 5: Lưu conversation vào Neon...")
             conversation = conversation_service.save_conversation(
                 db=db,
                 messages=messages
             )
             
-            print(f"✅ ĐÃ LƯU THÀNH CÔNG vào Neon!")
-            print(f"📊 ID: {conversation.id}")
-            print(f"📝 Tổng: {len(messages)} messages")
+            # ===== BƯỚC 6: Lưu vector vào Pinecone =====
+            print(f"\n🔗 BƯỚC 6: Lưu vector vào Pinecone...")
+            vector_id = await pinecone_service.save_story_vector(
+                story=story,
+                embedding=embedding,
+                conversation_id=conversation.id
+            )
+            
+            print(f"\n✅ HOÀN THÀNH!")
+            print(f"📊 Conversation ID: {conversation.id}")
+            print(f"📝 Tổng messages: {len(messages)}")
+            print(f"🔗 Vector ID: {vector_id}")
+            print(f"📖 Story: {story[:80]}...")
             print(f"{'='*60}\n")
             
             return {
                 "id": conversation.id,
                 "total_messages": len(messages),
                 "messages": messages,
+                "story": story,
+                "vector_id": vector_id,
                 "status": "success"
             }
             
@@ -78,7 +130,7 @@ class AutoDatasetGenerator:
                 "status": "failed",
                 "error": str(e)
             }
-    
+
     async def run_continuous(
         self,
         total_conversations: Optional[int] = None,
@@ -107,7 +159,9 @@ class AutoDatasetGenerator:
                     
                     if result["status"] == "success":
                         self.total_generated += 1
-                        print(f"✅ Messages #{count} đã lưu vào Neon thành công!")
+                        print(f"✅ Conversation #{count} đã lưu thành công!")
+                    elif result["status"] == "skipped":
+                        print(f"⏭️  Conversation #{count} bị bỏ qua: {result.get('reason', 'Unknown')}")
                         print(f"📊 Tổng messages đã tạo: {self.total_generated}")
                     else:
                         print(f"❌ Messages #{count} thất bại: {result.get('error', 'Unknown error')}")

@@ -8,6 +8,12 @@ class Settings(BaseSettings):
     # Gemini API Keys (raw string từ .env)
     gemini_api_keys: str = ""
     
+    # Pinecone Configuration
+    pinecone_api_key: str = ""
+    pinecone_environment: str = "us-east-1"
+    pinecone_index_name: str = "atri-stories"
+    similarity_threshold: float = 0.85
+    
     # PostgreSQL
     pghost: str
     pgdatabase: str
