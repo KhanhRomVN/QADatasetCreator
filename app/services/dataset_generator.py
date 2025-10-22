@@ -24,17 +24,18 @@ class AutoDatasetGenerator:
         """
         FLOW:
         1. Lấy ngày hiện tại (hoặc tạo ngày mới)
-        2. Tạo ~32 sự kiện cho ngày đó
-        3. Với mỗi sự kiện:
+        2. Tạo ~10 sự kiện cho ngày đó
+        3. Với MỖI sự kiện trong ngày:
            - Tạo story chi tiết
            - Tạo conversation từ story
            - Lưu conversation vào DB
+        4. Chỉ chuyển sang ngày mới khi đã tạo đủ conversations cho tất cả events
         
         Returns:
-            dict: Thông tin về conversation đã tạo
+            dict: Thông tin về các conversations đã tạo trong ngày
         """
         print(f"\n{'='*60}")
-        print(f"🎯 BẮT ĐẦU tạo conversation mới")
+        print(f"🎯 BẮT ĐẦU tạo conversations cho 1 NGÀY MỚI")
         print(f"{'='*60}\n")
         
         try:
@@ -60,7 +61,7 @@ class AutoDatasetGenerator:
             
             if not existing_events:
                 # Tạo sự kiện mới cho ngày này
-                print(f"🎲 Đang tạo ~32 sự kiện cho {current_date.day:02d}/{current_date.month:02d}/{current_date.year}...")
+                print(f"🎲 Đang tạo ~10 sự kiện cho {current_date.day:02d}/{current_date.month:02d}/{current_date.year}...")
                 
                 season = daily_events_service.get_season_from_month(current_date.month)
                 
@@ -97,28 +98,56 @@ class AutoDatasetGenerator:
                 daily_events_list = daily_events.events
                 print(f"♻️  Sử dụng {len(daily_events_list)} sự kiện đã có")
             
-            # ===== BƯỚC 2: Chọn 1 sự kiện ngẫu nhiên =====
-            print(f"\n📝 BƯỚC 2: Chọn 1 sự kiện ngẫu nhiên...")
+            # ===== BƯỚC 2: Kiểm tra số conversations đã tạo cho ngày này =====
+            print(f"\n🔍 BƯỚC 2: Kiểm tra tiến độ conversations...")
             
-            selected_event = random.choice(daily_events_list)
-            event_start_time = selected_event.get('start_time', '12:00')
-            event_end_time = selected_event.get('end_time', '12:30')
+            existing_conversations_count = conversation_service.count_conversations_by_daily_event(
+                db, 
+                daily_events.id
+            )
+            total_events = len(daily_events_list)
+            
+            print(f"📊 Đã tạo {existing_conversations_count}/{total_events} conversations cho ngày này")
+            
+            if existing_conversations_count >= total_events:
+                print(f"✅ Ngày {current_date.day:02d}/{current_date.month:02d}/{current_date.year} đã hoàn thành!")
+                print(f"🔄 Chuyển sang ngày tiếp theo...")
+                
+                # Tăng ngày lên (sẽ được xử lý ở lần gọi tiếp theo)
+                return {
+                    "status": "day_completed",
+                    "date": f"{current_date.day:02d}/{current_date.month:02d}/{current_date.year}",
+                    "total_events": total_events,
+                    "total_conversations": existing_conversations_count,
+                    "message": "Ngày này đã hoàn thành, chuyển sang ngày mới"
+                }
+            
+            # ===== BƯỚC 3: Tạo conversation cho event tiếp theo =====
+            print(f"\n📝 BƯỚC 3: Tạo conversation cho event #{existing_conversations_count + 1}...")
+            
+            # Lấy event chưa tạo conversation (theo thứ tự)
+            selected_event = daily_events_list[existing_conversations_count]
+            event_time = selected_event.get('time', '12:00--13:00')
             event_summary = selected_event.get('event', '')
             
-            print(f"  🎯 Sự kiện: {event_start_time}-{event_end_time}")
+            print(f"  🎯 Sự kiện: {event_time}")
             print(f"     {event_summary[:80]}...")
             
             # Tạo câu chuyện chi tiết từ sự kiện
             start_date = date(2050, 1, 1)
             day_number = (current_date - start_date).days + 1
+            
+            # Lấy giờ bắt đầu từ time range
+            event_start_time = event_time.split('--')[0] if '--' in event_time else event_time
+            
             story = await gemini_service.generate_story_from_event(
                 day_number=day_number,
                 event_time=event_start_time,
                 event_summary=event_summary
             )
             
-            # ===== BƯỚC 3: Tạo messages[] từ story =====
-            print(f"\n💬 BƯỚC 3: Tạo conversation từ story...")
+            # ===== BƯỚC 4: Tạo messages[] từ story =====
+            print(f"\n💬 BƯỚC 4: Tạo conversation từ story...")
             
             messages = await gemini_service.generate_conversation_with_gemini(
                 db=db,
@@ -134,8 +163,8 @@ class AutoDatasetGenerator:
             
             print(f"  ✅ Đã tạo {len(messages)} messages")
             
-            # ===== BƯỚC 4: Lưu vào Database =====
-            print(f"\n💾 BƯỚC 4: Lưu conversation vào database...")
+            # ===== BƯỚC 5: Lưu vào Database =====
+            print(f"\n💾 BƯỚC 5: Lưu conversation vào database...")
             
             conversation = conversation_service.save_conversation(
                 db=db,
@@ -145,14 +174,15 @@ class AutoDatasetGenerator:
             
             print(f"  ✅ Đã lưu conversation #{conversation.id}")
             print(f"\n{'='*60}")
-            print(f"🎉 HOÀN THÀNH!")
+            print(f"🎉 HOÀN THÀNH CONVERSATION #{existing_conversations_count + 1}/{total_events}!")
             print(f"{'='*60}\n")
             
             return {
                 "date": f"{current_date.day:02d}/{current_date.month:02d}/{current_date.year}",
                 "conversation_id": conversation.id,
                 "total_messages": len(messages),
-                "event_time": f"{event_start_time}-{event_end_time}",
+                "event_time": event_time,
+                "progress": f"{existing_conversations_count + 1}/{total_events}",
                 "status": "success"
             }
             

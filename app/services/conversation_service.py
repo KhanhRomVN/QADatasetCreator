@@ -50,6 +50,16 @@ class ConversationService:
         return db.query(Conversation).filter(
             Conversation.day_number == day_number
         ).all()
+        
+    def count_conversations_by_daily_event(
+        self,
+        db: Session,
+        daily_event_id: int
+    ) -> int:
+        """Đếm số conversations đã tạo cho 1 ngày cụ thể"""
+        return db.query(Conversation).filter(
+            Conversation.daily_event_id == daily_event_id
+        ).count()
     
     def delete_conversation(
         self,

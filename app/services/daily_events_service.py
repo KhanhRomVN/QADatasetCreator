@@ -93,9 +93,13 @@ class DailyEventsService:
     
     def get_current_date(self, db: Session) -> date:
         """
-        Lấy ngày hiện tại (ngày lớn nhất + 1)
-        Nếu chưa có ngày nào → trả về 01/01/2050
+        Lấy ngày hiện tại:
+        - Nếu ngày mới nhất đã có đủ conversations (= số events) → trả về ngày tiếp theo
+        - Nếu ngày mới nhất chưa đủ conversations → trả về ngày đó (tiếp tục tạo)
+        - Nếu chưa có ngày nào → trả về 01/01/2050
         """
+        from app.services.conversation_service import conversation_service
+        
         latest = db.query(DailyEvents).order_by(
             desc(DailyEvents.year),
             desc(DailyEvents.month),
@@ -106,11 +110,21 @@ class DailyEventsService:
             # Ngày đầu tiên: 01/01/2050
             return date(2050, 1, 1)
         
-        # Ngày tiếp theo
-        current = date(latest.year, latest.month, latest.day)
-        next_date = current + timedelta(days=1)
+        # Kiểm tra xem ngày mới nhất đã tạo đủ conversations chưa
+        total_events = len(latest.events) if latest.events else 0
+        existing_conversations = conversation_service.count_conversations_by_daily_event(
+            db, 
+            latest.id
+        )
         
-        return next_date
+        if existing_conversations < total_events:
+            # Chưa đủ conversations, tiếp tục tạo cho ngày này
+            return date(latest.year, latest.month, latest.day)
+        else:
+            # Đã đủ conversations, chuyển sang ngày mới
+            current = date(latest.year, latest.month, latest.day)
+            next_date = current + timedelta(days=1)
+            return next_date
     
     def get_history_context(
         self,

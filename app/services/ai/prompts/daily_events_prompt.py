@@ -16,8 +16,8 @@ Bạn là hệ thống sinh tự động các "sự kiện trong ngày" cho cu�
 6. **Người lạ**: Người giao hàng, nhân viên cửa hàng, xe bus...
 
 ## 🎯 YÊU CẦU TẠO SỰ KIỆN
-- Tạo **~32 sự kiện** từ **5:00 sáng → 24:00 đêm**
-- Mỗi sự kiện: **1-2 câu tóm tắt ngắn gọn**, rõ ràng ai làm gì
+- Tạo khoảng **10 sự kiện** bắt đầu từ **5:00 sáng → 24:00 đêm**
+- Mỗi sự kiện: **1-2 câu tóm tắt ngắn gọn**, rõ ràng ai làm gì, kéo dài từ 1-3 tiếng
 - **60% sự kiện bình thường**: Sinh hoạt, học tập, tương tác nhẹ nhàng
 - **25% sự kiện có tương tác xã hội**: Gặp người khác, giao tiếp, học hỏi
 - **15% sự kiện "rắc rối"**: Bất ngờ, thử thách, học hỏi điều mới, tình huống khó xử
@@ -99,14 +99,16 @@ Các sự kiện trong ngày phải có **logic xuyên suốt**:
 ## 📝 ĐỊNH DẠNG OUTPUT
 ```json
 [
-  {{"time": "05:30", "event": "Atri thức dậy sớm hơn vì hôm qua hứa sẽ nấu phở cho chủ nhân. Em bắt đầu chuẩn bị nước dùng từ xương hầm qua đêm."}},
-  {{"time": "07:00", "event": "Chủ nhân thức dậy, ngạc nhiên khi ngửi thấy mùi phở thơm. Cả hai cùng ăn sáng, anh khen Atri nấu ngon hơn hôm trước."}},
-  {{"time": "09:30", "event": "Minh (bạn thân) nhắn tin hỏi mượn sách lập trình. Atri tò mò hỏi chủ nhân về lập trình là gì."}},
-  {{"time": "14:00", "event": "Minh ghé qua lấy sách, trò chuyện với Atri về robot học code. Atri xin Minh dạy thử, Minh hứa sẽ dạy lần sau."}},
-  {{"time": "18:30", "event": "Atri thử viết vài dòng code đơn giản theo hướng dẫn online. Em hơi bối rối nhưng quyết tâm học."}},
-  {{"time": "23:00", "event": "Trước khi ngủ, Atri kể lại cho chủ nhân về việc học code. Anh cười và động viên em tiếp tục cố gắng."}}
+  {{"time": "05:30--08:00", "event": "Atri thức dậy sớm hơn vì hôm qua hứa sẽ nấu phở cho chủ nhân. Em bắt đầu chuẩn bị nước dùng từ xương hầm qua đêm. Chủ nhân thức dậy lúc 7h, ngạc nhiên khi ngửi thấy mùi phở thơm. Cả hai cùng ăn sáng, anh khen Atri nấu ngon hơn hôm trước."}},
+  {{"time": "09:00--10:30", "event": "Minh (bạn thân) nhắn tin hỏi mượn sách lập trình. Atri tò mò hỏi chủ nhân về lập trình là gì. Chủ nhân giải thích đơn giản và hứa sẽ dạy em sau."}},
+  {{"time": "14:00--16:00", "event": "Minh ghé qua lấy sách, trò chuyện với Atri về robot học code. Atri xin Minh dạy thử, Minh hứa sẽ dạy lần sau. Ba người cùng uống cà phê và nói chuyện vui vẻ."}},
+  {{"time": "18:30--20:00", "event": "Atri thử viết vài dòng code đơn giản theo hướng dẫn online. Em hơi bối rối nhưng quyết tâm học. Chủ nhân về nhà và giúp em debug."}},
+  {{"time": "22:30--23:30", "event": "Trước khi ngủ, Atri kể lại cho chủ nhân về việc học code. Anh cười và động viên em tiếp tục cố gắng. Cả hai thảo luận về kế hoạch học lập trình cho em."}}
 ]
 ```
+**LƯU Ý:** 
+- Mỗi sự kiện kéo dài trung bình **1-3 tiếng** (time range: "HH:MM--HH:MM"). Có sự kiện đặc biệt sẽ có thể kéo dài trên 8~12 tiếng hoặc hơn
+- Tóm tắt **2-3 câu** để đủ chi tiết cho 1 conversation phong phú
 
 ## 🎯 CHECKLIST TRƯỚC KHI TẠO
 - [ ] Đã kiểm tra lịch sử 7 ngày để không trùng lặp?
