@@ -100,6 +100,68 @@ class ConversationService:
             "total_messages": total_messages,
             "average_messages_per_conversation": round(total_messages / total_conversations, 2)
         }
+        
+    def get_conversations_by_date_range(
+        self,
+        db: Session,
+        start_date,
+        end_date
+    ):
+        """
+        Lấy conversations trong khoảng thời gian, nhóm theo ngày
+        
+        Returns:
+            dict: {date_obj: [(event_data, conversation)]}
+        """
+        from app.models.daily_events import DailyEvents
+        from datetime import date as date_type
+        
+        # Lấy tất cả daily_events trong khoảng thời gian
+        daily_events_list = db.query(DailyEvents).filter(
+            DailyEvents.year >= start_date.year,
+            DailyEvents.year <= end_date.year
+        ).order_by(
+            DailyEvents.year,
+            DailyEvents.month,
+            DailyEvents.day
+        ).all()
+        
+        # Lọc theo ngày cụ thể
+        filtered_events = []
+        for de in daily_events_list:
+            event_date = date_type(de.year, de.month, de.day)
+            if start_date <= event_date <= end_date:
+                filtered_events.append(de)
+        
+        # Nhóm conversations theo ngày
+        result = {}
+        
+        for daily_event in filtered_events:
+            event_date = date_type(daily_event.year, daily_event.month, daily_event.day)
+            
+            # Lấy tất cả conversations của ngày này
+            conversations = db.query(Conversation).filter(
+                Conversation.daily_event_id == daily_event.id
+            ).all()
+            
+            if not conversations:
+                continue
+            
+            # Map conversation với event tương ứng
+            conversations_with_events = []
+            events_list = daily_event.events or []
+            
+            for idx, conversation in enumerate(conversations):
+                # Lấy event tương ứng (theo thứ tự)
+                event_data = events_list[idx] if idx < len(events_list) else {
+                    'time': '00:00--00:00',
+                    'event': 'Không có mô tả'
+                }
+                conversations_with_events.append((event_data, conversation))
+            
+            result[event_date] = conversations_with_events
+        
+        return result
 
 
 # Singleton instance

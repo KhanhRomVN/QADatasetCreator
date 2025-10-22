@@ -134,3 +134,44 @@ def format_timestamp(timestamp: datetime) -> str:
         str: Timestamp đã format
     """
     return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def format_conversations_by_date(conversations_by_date: dict) -> str:
+    """
+    Format conversations theo ngày thành text
+    
+    Args:
+        conversations_by_date: Dict {date_obj: [(event, conversations)]}
+        
+    Returns:
+        str: Text đã format
+    """
+    output_lines = []
+    
+    for date_obj in sorted(conversations_by_date.keys()):
+        # Header ngày
+        output_lines.append(f"\nNgày {date_obj.day:02d}/{date_obj.month:02d}/{date_obj.year}")
+        
+        conversations_data = conversations_by_date[date_obj]
+        
+        for idx, (event_data, conversation) in enumerate(conversations_data, start=1):
+            # [N]. time-time - event
+            time_range = event_data.get('time', '00:00--00:00')
+            event_summary = event_data.get('event', 'Không có mô tả')
+            
+            output_lines.append(f"[{idx}]. {time_range} - {event_summary}")
+            
+            # Messages trong conversation
+            for msg in conversation.messages:
+                if msg.get('role') == 'atri':
+                    content = msg['chosen']['content']
+                    output_lines.append(f"Atri: {content}")
+                
+                elif msg.get('role') == 'user':
+                    speaker = msg.get('speaker', 'User')
+                    content = msg.get('content', '')
+                    output_lines.append(f"{speaker}: {content}")
+            
+            output_lines.append("")  # Dòng trống giữa các conversations
+    
+    return "\n".join(output_lines)

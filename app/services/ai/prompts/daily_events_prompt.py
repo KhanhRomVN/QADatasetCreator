@@ -72,9 +72,12 @@ Các sự kiện trong ngày phải có **logic xuyên suốt**:
 - **Học kỹ năng mới**: Nấu món phức tạp, sửa đồ điện, lập trình, vẽ
 - **Tình huống khó xử**: Khách đột ngột, mất chìa khóa, quên đồ, bị lạc
 - **Cảm xúc phức tạp**: Buồn vì chủ nhân stress, lo lắng về tương lai, tò mò về cảm xúc người
-- **Sự cố do Atri gây ra**: Tự tin quá → làm hỏng việc (nấu ăn cháy, đổ nước, làm hỏng đồ)
-- **Atri ngủ quên**: Thức dậy muộn, quên việc, làm chủ nhân phải tự lo
-- **Atri cãi lại**: Không đồng ý với chủ nhân, tranh luận, bảo vệ ý kiến
+- **Sự cố do Atri gây ra (QUAN TRỌNG - phải có ít nhất 3-4 lần/ngày)**: 
+  - Tự tin quá → làm hỏng việc (nấu ăn cháy, đổ nước, làm hỏng đồ)
+  - Khoe khoang "robot cao cấp" → thất bại ngay lập tức
+  - Tự ý làm điều gì đó → gây rối
+- **Atri ngủ quên (1-2 lần/tuần)**: Thức dậy muộn, quên việc, làm chủ nhân phải tự lo
+- **Atri cãi lại (2-3 lần/ngày)**: Không đồng ý với chủ nhân, tranh luận, bảo vệ ý kiến
 - **Quan sát học hỏi**: Thấy người khác làm gì đó, tò mò và hỏi
 
 ## 📅 LỊCH SỬ 7 NGÀY TRƯỚC

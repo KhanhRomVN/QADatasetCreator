@@ -3,7 +3,8 @@ from .formatters import (
     format_emotion_stats,
     format_daily_events_for_display,
     format_conversation_to_jsonl,
-    format_timestamp
+    format_timestamp,
+    format_conversations_by_date
 )
 from .helpers import (
     generate_session_id,
@@ -28,6 +29,7 @@ __all__ = [
     "format_daily_events_for_display",
     "format_conversation_to_jsonl",
     "format_timestamp",
+    "format_conversations_by_date",
     
     # Helpers
     "generate_session_id",

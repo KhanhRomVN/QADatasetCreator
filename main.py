@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import uvicorn
 import asyncio
 
@@ -280,6 +281,83 @@ async def get_daily_statistics(db: Session = Depends(get_db)):
         daily_stats[day]["total_messages"] += conv.total_messages
     
     return list(daily_stats.values())
+
+# ===== CONVERSATION BY DATE RANGE ENDPOINTS =====
+
+@app.get("/conversations/by-date/day", response_class=PlainTextResponse)
+async def get_conversations_last_day(db: Session = Depends(get_db)):
+    """Lấy tất cả conversations trong 1 ngày kề từ ngày hiện tại"""
+    from app.utils.formatters import format_conversations_by_date
+    
+    current_date = daily_events_service.get_current_date(db)
+    start_date = current_date
+    end_date = current_date
+    
+    conversations_by_date = conversation_service.get_conversations_by_date_range(
+        db, start_date, end_date
+    )
+    
+    if not conversations_by_date:
+        return "Không có conversations nào trong ngày này."
+    
+    return format_conversations_by_date(conversations_by_date)
+
+
+@app.get("/conversations/by-date/week", response_class=PlainTextResponse)
+async def get_conversations_last_week(db: Session = Depends(get_db)):
+    """Lấy tất cả conversations trong 1 tuần kề từ ngày hiện tại"""
+    from app.utils.formatters import format_conversations_by_date
+    
+    current_date = daily_events_service.get_current_date(db)
+    start_date = current_date - timedelta(days=6)  # 7 ngày (bao gồm hôm nay)
+    end_date = current_date
+    
+    conversations_by_date = conversation_service.get_conversations_by_date_range(
+        db, start_date, end_date
+    )
+    
+    if not conversations_by_date:
+        return "Không có conversations nào trong tuần này."
+    
+    return format_conversations_by_date(conversations_by_date)
+
+
+@app.get("/conversations/by-date/month", response_class=PlainTextResponse)
+async def get_conversations_last_month(db: Session = Depends(get_db)):
+    """Lấy tất cả conversations trong 1 tháng kề từ ngày hiện tại"""
+    from app.utils.formatters import format_conversations_by_date
+    
+    current_date = daily_events_service.get_current_date(db)
+    start_date = current_date - timedelta(days=29)  # 30 ngày
+    end_date = current_date
+    
+    conversations_by_date = conversation_service.get_conversations_by_date_range(
+        db, start_date, end_date
+    )
+    
+    if not conversations_by_date:
+        return "Không có conversations nào trong tháng này."
+    
+    return format_conversations_by_date(conversations_by_date)
+
+
+@app.get("/conversations/by-date/year", response_class=PlainTextResponse)
+async def get_conversations_last_year(db: Session = Depends(get_db)):
+    """Lấy tất cả conversations trong 1 năm kề từ ngày hiện tại"""
+    from app.utils.formatters import format_conversations_by_date
+    
+    current_date = daily_events_service.get_current_date(db)
+    start_date = current_date - timedelta(days=364)  # 365 ngày
+    end_date = current_date
+    
+    conversations_by_date = conversation_service.get_conversations_by_date_range(
+        db, start_date, end_date
+    )
+    
+    if not conversations_by_date:
+        return "Không có conversations nào trong năm này."
+    
+    return format_conversations_by_date(conversations_by_date)
 
 
 if __name__ == "__main__":
