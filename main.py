@@ -40,10 +40,6 @@ async def startup_event():
     init_db()
     print(f"✅ Đã load {len(settings.get_api_keys_list())} Gemini API keys")
     
-    # Khởi tạo Pinecone
-    from pinecone_service import pinecone_service
-    pinecone_service.initialize()
-    
     # Tự động chạy loop tạo dataset ngay khi start
     asyncio.create_task(
         auto_generator.run_continuous(

@@ -4,7 +4,6 @@ import uuid
 from datetime import datetime
 from sqlalchemy.orm import Session
 from typing import Optional
-from pinecone_service import pinecone_service
 from database import SessionLocal
 from gemini_service import gemini_service
 from conversation_service import conversation_service
@@ -42,84 +41,90 @@ class AutoDatasetGenerator:
         print(f"{'='*60}\n")
         
         try:
-            # ===== BƯỚC 1: Tạo câu chuyện tóm tắt =====
-            print(f"📖 BƯỚC 1: Tạo câu chuyện tóm tắt...")
-            story = await gemini_service.generate_story_summary()
+            # ===== BƯỚC 1: Lấy current_day và tạo sự kiện hàng ngày =====
+            print(f"\n📅 BƯỚC 1: Lấy thông tin ngày hiện tại...")
+            from daily_events_service import daily_events_service
             
-            # ===== BƯỚC 2: Convert story → vector =====
-            print(f"\n🔢 BƯỚC 2: Convert story → vector...")
-            embedding = await pinecone_service.get_story_embedding(story)
+            current_day = daily_events_service.get_current_day_number(db)
+            print(f"📆 Ngày hiện tại: Ngày {current_day}")
             
-            if embedding is None:
-                print(f"⚠️  Không tạo được embedding, bỏ qua kiểm tra trùng")
+            # Lấy lịch sử 7 ngày trước
+            history_context = daily_events_service.get_history_context(db, n=7)
+            years_together = daily_events_service.get_years_together(db)
             
-            # ===== BƯỚC 3: Check trùng lặp =====
-            print(f"\n🔍 BƯỚC 3: Kiểm tra trùng lặp...")
-            is_duplicate, similarity = await pinecone_service.check_story_duplicate(
-                story=story,
-                embedding=embedding
-            )
+            print(f"📚 Số năm đã sống chung: {years_together} năm")
             
-            if is_duplicate:
-                print(f"❌ Câu chuyện BỊ TRÙNG (similarity: {similarity:.4f} > 0.85)")
-                print(f"⏭️  BỎ QUA câu chuyện này\n")
-                return {
-                    "status": "skipped",
-                    "reason": "duplicate",
-                    "similarity": similarity,
-                    "story": story
-                }
-            
-            print(f"✅ Câu chuyện HỢP LỆ (similarity: {similarity:.4f} ≤ 0.85)")
-            
-            # ===== BƯỚC 4: Tạo messages[] từ story =====
-            print(f"\n💬 BƯỚC 4: Tạo hội thoại từ câu chuyện...")
-            messages = await gemini_service.generate_conversation_with_gemini(
+            # Tạo sự kiện cho ngày hiện tại
+            print(f"🎲 Đang tạo ~32 sự kiện cho Ngày {current_day}...")
+            daily_events = await gemini_service.generate_daily_events(
                 db=db,
-                story_context=story
+                day_number=current_day,
+                history_context=history_context,
+                years_together=years_together
             )
             
-            if not messages or not isinstance(messages, list):
-                raise ValueError("Response từ Gemini không hợp lệ!")
-            
-            print(f"✅ Đã nhận {len(messages)} messages từ Gemini")
-            
-            # Preview
-            for i, msg in enumerate(messages[:4], 1):
-                role = msg.get('role', 'unknown')
-                content = msg.get('content', '')[:50]
-                print(f"  [{i}] {role}: {content}...")
-            if len(messages) > 4:
-                print(f"  ... và {len(messages) - 4} messages khác")
-            
-            # ===== BƯỚC 5: Lưu vào Neon Database =====
-            print(f"\n💾 BƯỚC 5: Lưu conversation vào Neon...")
-            conversation = conversation_service.save_conversation(
+            # Lưu sự kiện vào database
+            daily_events_service.save_daily_events(
                 db=db,
-                messages=messages
+                day_number=current_day,
+                events=daily_events
             )
             
-            # ===== BƯỚC 6: Lưu vector vào Pinecone =====
-            print(f"\n🔗 BƯỚC 6: Lưu vector vào Pinecone...")
-            vector_id = await pinecone_service.save_story_vector(
-                story=story,
-                embedding=embedding,
-                conversation_id=conversation.id
-            )
+            print(f"✅ Đã tạo {len(daily_events)} sự kiện cho Ngày {current_day}")
             
-            print(f"\n✅ HOÀN THÀNH!")
-            print(f"📊 Conversation ID: {conversation.id}")
-            print(f"📝 Tổng messages: {len(messages)}")
-            print(f"🔗 Vector ID: {vector_id}")
-            print(f"📖 Story: {story[:80]}...")
+            # ===== BƯỚC 2: Duyệt qua TẤT CẢ sự kiện =====
+            print(f"\n📝 BƯỚC 2: Xử lý {len(daily_events)} sự kiện...")
+            
+            conversations_created = []
+            
+            for idx, selected_event in enumerate(daily_events, 1):
+                event_time = selected_event.get('time', '12:00')
+                event_summary = selected_event.get('event', '')
+                
+                print(f"\n  🎯 [{idx}/{len(daily_events)}] {event_time} - {event_summary[:50]}...")
+                
+                # Tạo câu chuyện chi tiết từ sự kiện
+                story = await gemini_service.generate_story_from_event(
+                    day_number=current_day,
+                    event_time=event_time,
+                    event_summary=event_summary
+                )
+                
+                # ===== BƯỚC 3: Tạo messages[] từ story =====
+                messages = await gemini_service.generate_conversation_with_gemini(
+                    db=db,
+                    story_context=story
+                )
+                
+                if not messages or not isinstance(messages, list):
+                    print(f"  ⚠️  Gemini response không hợp lệ, bỏ qua")
+                    continue
+                
+                print(f"  💬 Tạo được {len(messages)} messages")
+                
+                # ===== BƯỚC 4: Lưu vào Neon =====
+                conversation = conversation_service.save_conversation(
+                    db=db,
+                    messages=messages
+                )
+                
+                conversations_created.append({
+                    "conversation_id": conversation.id,
+                    "event_time": event_time,
+                    "total_messages": len(messages)
+                })
+                
+                print(f"  ✅ Đã lưu conversation #{conversation.id}")
+            
+            print(f"\n✅ HOÀN THÀNH NGÀY {current_day}!")
+            print(f"📊 Tổng conversations đã tạo: {len(conversations_created)}/{len(daily_events)}")
             print(f"{'='*60}\n")
             
             return {
-                "id": conversation.id,
-                "total_messages": len(messages),
-                "messages": messages,
-                "story": story,
-                "vector_id": vector_id,
+                "day_number": current_day,
+                "total_events": len(daily_events),
+                "conversations_created": len(conversations_created),
+                "details": conversations_created,
                 "status": "success"
             }
             
