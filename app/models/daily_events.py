@@ -12,10 +12,9 @@ class DailyEvents(Base):
     Cấu trúc events (JSON):
     [
         {
-            "start_time": "05:30",
-            "end_time": "06:00",
+            "time": "05:30--06:00",
             "event": "Atri thức dậy sớm hơn vì hôm qua hứa sẽ nấu phở...",
-            "participants": ["Atri", "Chủ nhân"]
+            "characters": ["Atri", "Chủ nhân"]
         }
     ]
     """

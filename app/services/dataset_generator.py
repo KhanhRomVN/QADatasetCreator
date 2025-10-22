@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 import random
 from datetime import date
 from app.core.database import SessionLocal
@@ -45,9 +45,17 @@ class AutoDatasetGenerator:
             current_date = daily_events_service.get_current_date(db)
             print(f"📆 Ngày hiện tại: {current_date.day:02d}/{current_date.month:02d}/{current_date.year}")
             
-            # Lấy lịch sử 7 ngày trước
-            history_context = daily_events_service.get_history_context(db, n=7)
-            years_together = daily_events_service.get_years_together(db)
+            # Kiểm tra nếu là ngày đầu tiên (01/01/2050)
+            is_first_day = (current_date.day == 1 and current_date.month == 1 and current_date.year == 2050)
+            
+            if is_first_day:
+                print(f"🎉 ĐẶC BIỆT: Đây là ngày đầu tiên Atri được mua về!")
+                history_context = "Đây là ngày đầu tiên. Atri và chủ nhân chưa quen nhau."
+                years_together = 0
+            else:
+                # Lấy lịch sử 7 ngày trước
+                history_context = daily_events_service.get_history_context(db, n=7)
+                years_together = daily_events_service.get_years_together(db)
             
             print(f"📚 Số năm đã sống chung: {years_together} năm")
             
@@ -129,9 +137,11 @@ class AutoDatasetGenerator:
             selected_event = daily_events_list[existing_conversations_count]
             event_time = selected_event.get('time', '12:00--13:00')
             event_summary = selected_event.get('event', '')
+            character_names = selected_event.get('characters', ['Atri', 'Chủ nhân'])
             
             print(f"  🎯 Sự kiện: {event_time}")
             print(f"     {event_summary[:80]}...")
+            print(f"  👥 Nhân vật: {', '.join(character_names)}")
             
             # Tạo câu chuyện chi tiết từ sự kiện
             start_date = date(2050, 1, 1)
@@ -141,9 +151,11 @@ class AutoDatasetGenerator:
             event_start_time = event_time.split('--')[0] if '--' in event_time else event_time
             
             story = await gemini_service.generate_story_from_event(
+                db=db,
                 day_number=day_number,
                 event_time=event_start_time,
-                event_summary=event_summary
+                event_summary=event_summary,
+                character_names=character_names
             )
             
             # ===== BƯỚC 4: Tạo messages[] từ story =====

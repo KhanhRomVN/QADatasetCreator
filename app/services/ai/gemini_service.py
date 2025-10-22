@@ -121,7 +121,7 @@ class GeminiService:
         temperature: int = 25
     ) -> List[dict]:
         """
-        Tạo ~32 sự kiện trong ngày từ 5:00-24:00
+        Tạo ~10 sự kiện trong ngày từ 5:00-24:00
         
         Args:
             db: Database session
@@ -133,10 +133,30 @@ class GeminiService:
             temperature: Nhiệt độ
             
         Returns:
-            List[dict]: Danh sách sự kiện theo format [{"start_time": "05:00", "end_time": "05:30", "event": "..."}]
+            List[dict]: Danh sách sự kiện theo format [{"time": "05:00--06:00", "event": "...", "characters": ["Atri", "Chủ nhân"]}]
         """
         if not self.api_keys:
             raise ValueError("Không có API key nào được cấu hình!")
+        
+        # Lấy tất cả characters từ database
+        from app.models.character import Character
+        characters = db.query(Character).all()
+        
+        # Format characters_list cho prompt
+        characters_list = []
+        for char in characters:
+            char_info = f"**{char.name}**"
+            if char.age:
+                char_info += f" ({char.age} tuổi)"
+            if char.occupation:
+                char_info += f" - {char.occupation}"
+            if char.personality:
+                char_info += f"\n  - Tính cách: {char.personality}"
+            if char.interests:
+                char_info += f"\n  - Sở thích: {', '.join(char.interests)}"
+            characters_list.append(char_info)
+        
+        characters_text = "\n\n".join(characters_list) if characters_list else "Chưa có nhân vật nào."
         
         last_error = None
         
@@ -151,6 +171,7 @@ class GeminiService:
                 final_prompt = DAILY_EVENTS_PROMPT.format(
                     years_together=years_together,
                     history_context=history_context if history_context else "Chưa có lịch sử.",
+                    characters_list=characters_text,
                     season=season,
                     weather=weather,
                     temperature=temperature,
@@ -192,23 +213,47 @@ class GeminiService:
     
     async def generate_story_from_event(
         self,
+        db: Session,
         day_number: int,
         event_time: str,
-        event_summary: str
+        event_summary: str,
+        character_names: List[str]
     ) -> str:
         """
         Tạo câu chuyện chi tiết từ 1 sự kiện
         
         Args:
+            db: Database session
             day_number: Số ngày ảo (1, 2, 3, ...)
             event_time: Giờ của sự kiện (VD: "18:30")
             event_summary: Tóm tắt sự kiện
+            character_names: Danh sách tên nhân vật tham gia event
             
         Returns:
             str: Câu chuyện chi tiết
         """
         if not self.api_keys:
             raise ValueError("Không có API key nào được cấu hình!")
+        
+        # Lấy thông tin chi tiết của characters tham gia
+        from app.models.character import Character
+        characters = db.query(Character).filter(Character.name.in_(character_names)).all()
+        
+        # Format characters_info cho prompt
+        characters_info_list = []
+        for char in characters:
+            char_info = f"**{char.name}**"
+            if char.age:
+                char_info += f" ({char.age} tuổi)"
+            if char.occupation:
+                char_info += f" - {char.occupation}"
+            if char.personality:
+                char_info += f"\n  - Tính cách: {char.personality}"
+            if char.relationships:
+                char_info += f"\n  - Mối quan hệ: {', '.join(char.relationships[:3])}"
+            characters_info_list.append(char_info)
+        
+        characters_text = "\n\n".join(characters_info_list) if characters_info_list else "Không có thông tin nhân vật."
         
         last_error = None
         
@@ -220,7 +265,8 @@ class GeminiService:
                 final_prompt = STORY_FROM_EVENT_PROMPT.format(
                     day_number=day_number,
                     time=event_time,
-                    event_summary=event_summary
+                    event_summary=event_summary,
+                    characters_info=characters_text
                 )
                 
                 response = await model.generate_content_async(

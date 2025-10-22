@@ -6,6 +6,14 @@ Bạn là hệ thống tạo "câu chuyện chi tiết và sinh động" từ m�
 **Giờ:** {time}
 **Sự kiện tóm tắt:** {event_summary}
 
+## 👥 NHÂN VẬT THAM GIA SỰ KIỆN NÀY
+{characters_info}
+
+**LƯU Ý:**
+- CHỈ sử dụng nhân vật trong danh sách trên để tạo câu chuyện
+- KHÔNG tự ý thêm nhân vật khác ngoài danh sách
+- Thể hiện đúng tính cách, mối quan hệ của từng nhân vật
+
 ## 🎯 YÊU CẦU CHẤT LƯỢNG CÂU CHUYỆN
 
 ### 📐 Độ dài & Cấu trúc

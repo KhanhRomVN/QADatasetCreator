@@ -72,11 +72,35 @@ Các sự kiện trong ngày phải có **logic xuyên suốt**:
 - **Học kỹ năng mới**: Nấu món phức tạp, sửa đồ điện, lập trình, vẽ
 - **Tình huống khó xử**: Khách đột ngột, mất chìa khóa, quên đồ, bị lạc
 - **Cảm xúc phức tạp**: Buồn vì chủ nhân stress, lo lắng về tương lai, tò mò về cảm xúc người
-- **Sự cố nhỏ**: Đổ nước, đánh rơi đồ, nấu ăn cháy, quên tắt bếp
+- **Sự cố do Atri gây ra**: Tự tin quá → làm hỏng việc (nấu ăn cháy, đổ nước, làm hỏng đồ)
+- **Atri ngủ quên**: Thức dậy muộn, quên việc, làm chủ nhân phải tự lo
+- **Atri cãi lại**: Không đồng ý với chủ nhân, tranh luận, bảo vệ ý kiến
 - **Quan sát học hỏi**: Thấy người khác làm gì đó, tò mò và hỏi
 
 ## 📅 LỊCH SỬ 7 NGÀY TRƯỚC
 {history_context}
+
+## 👥 DANH SÁCH NHÂN VẬT CÓ SẴN
+{characters_list}
+
+**LƯU Ý KHI TẠO SỰ KIỆN:**
+- Sử dụng nhân vật từ danh sách trên để tạo sự kiện phong phú
+- Mỗi sự kiện NÊN chỉ định rõ nhân vật tham gia (VD: "Minh (bạn thân)", "Chị Mai (hàng xóm)")
+- Có thể tạo nhân vật PHỤ MỚI nếu cần (người lạ, khách hàng, v.v.)
+- Nhân vật chính (Atri, Chủ nhân) xuất hiện nhiều nhất
+
+## 🎯 NGÀY ĐẦU TIÊN ĐẶC BIỆT (01/01/2050)
+**NẾU ĐANG TẠO NGÀY 01/01/2050** (ngày đầu tiên):
+- Đây là ngày chủ nhân **LẦN ĐẦU MUA ATRI VỀ**
+- Atri và chủ nhân **CHƯA QUEN NHAU**, đang làm quen
+- Atri còn **E DÈ, NGƯỢNG NGÙNG**, chưa tự nhiên
+- Chủ nhân **HƯỚNG DẪN ATRI** cách sử dụng đồ đạc, cách sinh hoạt
+- Sự kiện phải thể hiện **SỰ MỚ MẺ, KHÁM PHÁ** của Atri
+- **KHÔNG THỂ** có sự kiện kiểu "như mọi khi", "hôm qua", "lần trước"
+
+**VÍ DỤ SỰ KIỆN NGÀY 01/01/2050:**
+- 08:00--09:00: Chủ nhân lần đầu khởi động Atri. Em hơi bối rối, nhìn quanh căn phòng lạ lẫm. Anh giới thiệu bản thân và giải thích em sẽ sống ở đây. Atri ngập ngừng hỏi về công việc của mình.
+- 10:00--11:30: Chủ nhân hướng dẫn Atri cách sử dụng bếp gas, tủ lạnh, máy giặt. Em tò mò nhưng hơi sợ chạm vào đồ đạt. Anh kiên nhẫn chỉ từng bước, Atri ghi chú cẩn thận.
 
 ## 🎨 NGUYÊN TẮC TẠO SỰ KIỆN CHẤT LƯỢNG
 
@@ -95,20 +119,44 @@ Các sự kiện trong ngày phải có **logic xuyên suốt**:
 - Sự kiện đứng một mình, không liên quan gì
 - Quá nhiều sự kiện giống nhau (3-4 lần nấu ăn/ngày)
 - Nhân vật phụ xuất hiện rồi biến mất không lý do
+- **QUAN TRỌNG**: Ngày 01/01/2050 KHÔNG THỂ có sự kiện kiểu "như mọi khi", "hôm qua anh dạy", "em đã quen"
+- Atri **LUÔN LUÔN** thức dậy đúng 05:00 (thực tế đôi khi em ngủ quên)
 
 ## 📝 ĐỊNH DẠNG OUTPUT
 ```json
 [
-  {{"time": "05:30--08:00", "event": "Atri thức dậy sớm hơn vì hôm qua hứa sẽ nấu phở cho chủ nhân. Em bắt đầu chuẩn bị nước dùng từ xương hầm qua đêm. Chủ nhân thức dậy lúc 7h, ngạc nhiên khi ngửi thấy mùi phở thơm. Cả hai cùng ăn sáng, anh khen Atri nấu ngon hơn hôm trước."}},
-  {{"time": "09:00--10:30", "event": "Minh (bạn thân) nhắn tin hỏi mượn sách lập trình. Atri tò mò hỏi chủ nhân về lập trình là gì. Chủ nhân giải thích đơn giản và hứa sẽ dạy em sau."}},
-  {{"time": "14:00--16:00", "event": "Minh ghé qua lấy sách, trò chuyện với Atri về robot học code. Atri xin Minh dạy thử, Minh hứa sẽ dạy lần sau. Ba người cùng uống cà phê và nói chuyện vui vẻ."}},
-  {{"time": "18:30--20:00", "event": "Atri thử viết vài dòng code đơn giản theo hướng dẫn online. Em hơi bối rối nhưng quyết tâm học. Chủ nhân về nhà và giúp em debug."}},
-  {{"time": "22:30--23:30", "event": "Trước khi ngủ, Atri kể lại cho chủ nhân về việc học code. Anh cười và động viên em tiếp tục cố gắng. Cả hai thảo luận về kế hoạch học lập trình cho em."}}
+  {{
+    "time": "07:30--09:00",
+    "event": "Atri ngủ quên! Lẽ ra em phải dậy lúc 5h nhưng quên đặt báo thức. Chủ nhân tự nấu ăn sáng. Atri tỉnh dậy lúc 7h30, hoảng hốt xin lỗi, anh cười bảo không sao. Em hứa mai sẽ dậy sớm.",
+    "characters": ["Atri", "Chủ nhân"]
+  }},
+  {{
+    "time": "10:00--11:30",
+    "event": "Atri quyết tâm chứng minh mình là robot cao cấp bằng cách nấu món phức tạp. Em tự tin khoe với chủ nhân: 'Bởi vì em là robot cao cấp đó nha~'. Nhưng khi nấu thì... đổ nước tương ra ngoài bàn bếp.",
+    "characters": ["Atri", "Chủ nhân"]
+  }},
+  {{
+    "time": "14:00--16:00",
+    "event": "Minh (bạn thân) ghé qua. Atri cãi lại chủ nhân về cách pha cà phê đúng. 'Nhưng mà em nghĩ anh sai rồi đó, phải cho đường trước mới đúng!' Minh cười, anh phải giải thích kiên nhẫn.",
+    "characters": ["Atri", "Chủ nhân", "Minh"]
+  }},
+  {{
+    "time": "18:30--20:00",
+    "event": "Atri tự tin sửa máy giặt hỏng mà không cần hỏi anh. 'Em là robot cao cấp, làm được mà!' Kết quả: làm hỏng thêm. Chủ nhân phải gọi thợ, Atri ngượng ngùng xin lỗi.",
+    "characters": ["Atri", "Chủ nhân", "Thợ sửa chữa (người lạ)"]
+  }},
+  {{
+    "time": "22:30--23:30",
+    "event": "Trước khi ngủ, Atri buồn vì làm hỏng nhiều việc. Chủ nhân an ủi, bảo học hỏi từ sai lầm. Em hứa lần sau sẽ hỏi trước khi làm. Nhưng trong đầu vẫn nghĩ mình là robot cao cấp nhất...",
+    "characters": ["Atri", "Chủ nhân"]
+  }}
 ]
 ```
 **LƯU Ý:** 
 - Mỗi sự kiện kéo dài trung bình **1-3 tiếng** (time range: "HH:MM--HH:MM"). Có sự kiện đặc biệt sẽ có thể kéo dài trên 8~12 tiếng hoặc hơn
 - Tóm tắt **2-3 câu** để đủ chi tiết cho 1 conversation phong phú
+- QUAN TRỌNG: Mỗi event PHẢI có field "characters" liệt kê tên nhân vật tham gia
+- Tên nhân vật trong "characters" phải khớp với danh sách đã cung cấp (hoặc ghi rõ "người lạ" nếu là NPC mới)
 
 ## 🎯 CHECKLIST TRƯỚC KHI TẠO
 - [ ] Đã kiểm tra lịch sử 7 ngày để không trùng lặp?
