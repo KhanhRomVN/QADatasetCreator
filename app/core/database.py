@@ -29,9 +29,18 @@ def init_db():
     """Khởi tạo database tables"""
     print("🗃️  Đang tạo database tables...")
     
-    # IMPORT TẤT CẢ MODELS ĐỂ SQLALCHEMY NHẬN DIỆN - THÊM ĐOẠN NÀY
+    # IMPORT TẤT CẢ MODELS ĐỂ SQLALCHEMY NHẬN DIỆN
     from app.models.conversation import Conversation
     from app.models.daily_events import DailyEvents
+    from app.models.character import Character
     
     Base.metadata.create_all(bind=engine)
     print("✅ Đã tạo database tables thành công!")
+    
+    # Khởi tạo dữ liệu mặc định
+    from app.core.init_data import init_default_characters
+    db = SessionLocal()
+    try:
+        init_default_characters(db)
+    finally:
+        db.close()

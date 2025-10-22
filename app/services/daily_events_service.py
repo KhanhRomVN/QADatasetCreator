@@ -1,62 +1,82 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, and_
 from app.models.daily_events import DailyEvents
 from typing import List, Optional
+from datetime import date, timedelta
 
 
 class DailyEventsService:
-    """Service quản lý sự kiện hàng ngày (sliding window 7 ngày)"""
+    """Service quản lý sự kiện hàng ngày"""
     
     def save_daily_events(
         self,
         db: Session,
-        day_number: int,
-        events: List[dict]
+        day: int,
+        month: int,
+        year: int,
+        season: str,
+        events: List[dict],
+        weather: Optional[str] = None,
+        temperature: Optional[int] = None,
+        special_occasion: Optional[str] = None
     ) -> DailyEvents:
         """
-        Lưu sự kiện của 1 ngày ảo
-        Tự động xóa ngày cũ nhất nếu đã có > 7 ngày
+        Lưu sự kiện của 1 ngày cụ thể
         """
         # Kiểm tra xem ngày này đã tồn tại chưa
         existing = db.query(DailyEvents).filter(
-            DailyEvents.day_number == day_number
+            and_(
+                DailyEvents.day == day,
+                DailyEvents.month == month,
+                DailyEvents.year == year
+            )
         ).first()
         
         if existing:
             # Cập nhật
             existing.events = events
+            existing.season = season
+            existing.weather = weather
+            existing.temperature = temperature
+            existing.special_occasion = special_occasion
             db.commit()
             db.refresh(existing)
+            print(f"♻️  Cập nhật sự kiện cho {day}/{month}/{year}")
             return existing
         
         # Tạo mới
         daily_events = DailyEvents(
-            day_number=day_number,
+            day=day,
+            month=month,
+            year=year,
+            season=season,
+            weather=weather,
+            temperature=temperature,
+            special_occasion=special_occasion,
             events=events
         )
         db.add(daily_events)
         db.commit()
         db.refresh(daily_events)
         
-        # Xóa ngày cũ nhất nếu > 7 ngày
-        total_days = db.query(DailyEvents).count()
-        if total_days > 7:
-            oldest = db.query(DailyEvents).order_by(DailyEvents.day_number).first()
-            if oldest:
-                print(f"🗑️  Xóa sự kiện ngày cũ: Ngày {oldest.day_number}")
-                db.delete(oldest)
-                db.commit()
+        print(f"✅ Đã tạo sự kiện cho {day}/{month}/{year}")
         
         return daily_events
     
     def get_daily_events(
         self,
         db: Session,
-        day_number: int
+        day: int,
+        month: int,
+        year: int
     ) -> Optional[DailyEvents]:
-        """Lấy sự kiện theo số ngày"""
+        """Lấy sự kiện theo ngày/tháng/năm"""
         return db.query(DailyEvents).filter(
-            DailyEvents.day_number == day_number
+            and_(
+                DailyEvents.day == day,
+                DailyEvents.month == month,
+                DailyEvents.year == year
+            )
         ).first()
     
     def get_last_n_days(
@@ -66,22 +86,31 @@ class DailyEventsService:
     ) -> List[DailyEvents]:
         """Lấy N ngày gần nhất"""
         return db.query(DailyEvents).order_by(
-            desc(DailyEvents.day_number)
+            desc(DailyEvents.year),
+            desc(DailyEvents.month),
+            desc(DailyEvents.day)
         ).limit(n).all()
     
-    def get_current_day_number(self, db: Session) -> int:
+    def get_current_date(self, db: Session) -> date:
         """
-        Lấy số ngày hiện tại (ngày lớn nhất + 1)
-        Nếu chưa có ngày nào → trả về 1
+        Lấy ngày hiện tại (ngày lớn nhất + 1)
+        Nếu chưa có ngày nào → trả về 01/01/2050
         """
         latest = db.query(DailyEvents).order_by(
-            desc(DailyEvents.day_number)
+            desc(DailyEvents.year),
+            desc(DailyEvents.month),
+            desc(DailyEvents.day)
         ).first()
         
         if not latest:
-            return 1
+            # Ngày đầu tiên: 01/01/2050
+            return date(2050, 1, 1)
         
-        return latest.day_number + 1
+        # Ngày tiếp theo
+        current = date(latest.year, latest.month, latest.day)
+        next_date = current + timedelta(days=1)
+        
+        return next_date
     
     def get_history_context(
         self,
@@ -90,7 +119,7 @@ class DailyEventsService:
     ) -> str:
         """
         Tạo context text từ lịch sử N ngày
-        Format: "Ngày N: event1, event2, ..."
+        Format: "Ngày DD/MM/YYYY: event1, event2, ..."
         """
         days = self.get_last_n_days(db, n)
         
@@ -98,13 +127,14 @@ class DailyEventsService:
             return "Chưa có lịch sử sự kiện nào."
         
         context_lines = []
-        for day in reversed(days):  # Sắp xếp từ cũ → mới
+        for day_events in reversed(days):  # Sắp xếp từ cũ → mới
             events_summary = []
-            for evt in day.events[:5]:  # Chỉ lấy 5 sự kiện đầu để không quá dài
+            for evt in day_events.events[:5]:  # Chỉ lấy 5 sự kiện đầu
                 events_summary.append(evt.get('event', ''))
             
+            date_str = f"{day_events.day:02d}/{day_events.month:02d}/{day_events.year}"
             context_lines.append(
-                f"**Ngày {day.day_number}**: {', '.join(events_summary)}..."
+                f"**{date_str}**: {', '.join(events_summary)}..."
             )
         
         return "\n".join(context_lines)
@@ -112,27 +142,39 @@ class DailyEventsService:
     def get_years_together(self, db: Session) -> int:
         """
         Tính số năm đã sống chung
-        Dựa vào tổng số ngày đã trải qua
+        Từ 01/01/2050 đến ngày hiện tại
         """
         latest = db.query(DailyEvents).order_by(
-            desc(DailyEvents.day_number)
+            desc(DailyEvents.year),
+            desc(DailyEvents.month),
+            desc(DailyEvents.day)
         ).first()
         
         if not latest:
             return 1  # Mặc định 1 năm nếu chưa có data
         
-        years = max(1, latest.day_number // 365)
+        start_date = date(2050, 1, 1)
+        current_date = date(latest.year, latest.month, latest.day)
+        
+        days_together = (current_date - start_date).days
+        years = max(1, days_together // 365)
         
         return years
     
     def delete_daily_events(
         self,
         db: Session,
-        day_number: int
+        day: int,
+        month: int,
+        year: int
     ) -> bool:
-        """Xóa sự kiện theo số ngày"""
+        """Xóa sự kiện theo ngày/tháng/năm"""
         daily_events = db.query(DailyEvents).filter(
-            DailyEvents.day_number == day_number
+            and_(
+                DailyEvents.day == day,
+                DailyEvents.month == month,
+                DailyEvents.year == year
+            )
         ).first()
         
         if daily_events:
@@ -140,6 +182,17 @@ class DailyEventsService:
             db.commit()
             return True
         return False
+    
+    def get_season_from_month(self, month: int) -> str:
+        """Xác định mùa từ tháng"""
+        if month in [12, 1, 2]:
+            return "winter"
+        elif month in [3, 4, 5]:
+            return "spring"
+        elif month in [6, 7, 8]:
+            return "summer"
+        else:  # 9, 10, 11
+            return "autumn"
 
 
 # Singleton instance

@@ -7,24 +7,20 @@ class ConversationService:
     """Service quản lý hội thoại"""
     
     def save_conversation(
-        self,
-        db: Session,
-        messages: List[dict],
-        day_number: Optional[int] = None,
-        event_time: Optional[str] = None,
-        story_summary: Optional[str] = None
-    ) -> Conversation:
-        """Lưu một conversation mới vào database"""
-        conversation = Conversation(
-            messages=messages,
-            day_number=day_number,
-            event_time=event_time,
-            story_summary=story_summary
-        )
-        db.add(conversation)
-        db.commit()
-        db.refresh(conversation)
-        return conversation
+            self,
+            db: Session,
+            messages: List[dict],
+            daily_event_id: int
+        ) -> Conversation:
+            """Lưu một conversation mới vào database"""
+            conversation = Conversation(
+                messages=messages,
+                daily_event_id=daily_event_id
+            )
+            db.add(conversation)
+            db.commit()
+            db.refresh(conversation)
+            return conversation
     
     def get_conversation(
         self,

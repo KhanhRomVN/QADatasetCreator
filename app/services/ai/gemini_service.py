@@ -113,21 +113,27 @@ class GeminiService:
     async def generate_daily_events(
         self,
         db: Session,
-        day_number: int,
+        current_date,
         history_context: str = "",
-        years_together: int = 1
+        years_together: int = 1,
+        season: str = "spring",
+        weather: str = "sunny",
+        temperature: int = 25
     ) -> List[dict]:
         """
         Tạo ~32 sự kiện trong ngày từ 5:00-24:00
         
         Args:
             db: Database session
-            day_number: Số ngày ảo (1, 2, 3, ...)
+            current_date: date object (ngày hiện tại)
             history_context: Context của 7 ngày trước
             years_together: Số năm đã sống chung
+            season: Mùa (spring, summer, autumn, winter)
+            weather: Thời tiết
+            temperature: Nhiệt độ
             
         Returns:
-            List[dict]: Danh sách sự kiện theo format [{"time": "05:00", "event": "..."}]
+            List[dict]: Danh sách sự kiện theo format [{"start_time": "05:00", "end_time": "05:30", "event": "..."}]
         """
         if not self.api_keys:
             raise ValueError("Không có API key nào được cấu hình!")
@@ -144,7 +150,13 @@ class GeminiService:
                 # Tạo prompt với context
                 final_prompt = DAILY_EVENTS_PROMPT.format(
                     years_together=years_together,
-                    history_context=history_context if history_context else "Chưa có lịch sử."
+                    history_context=history_context if history_context else "Chưa có lịch sử.",
+                    season=season,
+                    weather=weather,
+                    temperature=temperature,
+                    day=current_date.day,
+                    month=current_date.month,
+                    year=current_date.year
                 )
                 
                 print(f"📡 [Daily Events] Đang gọi Gemini API...")

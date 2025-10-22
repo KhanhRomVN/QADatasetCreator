@@ -1,11 +1,12 @@
-from sqlalchemy import Column, Integer, JSON, DateTime, String, Text
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, JSON, ForeignKey
+from sqlalchemy.orm import relationship
 from .base import Base
 
 
 class Conversation(Base):
     """
     Model lưu trữ hội thoại dạng JSON
+    Liên kết với 1 sự kiện cụ thể trong DailyEvents
     
     Cấu trúc messages (JSON):
     [
@@ -44,43 +45,22 @@ class Conversation(Base):
         comment="Danh sách tin nhắn dạng JSON (có emotions + chosen/rejected)"
     )
     
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        nullable=False,
-        comment="Thời gian tạo"
-    )
-    
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-        comment="Thời gian cập nhật"
-    )
-    
-    # Metadata thêm (optional - có thể dùng để filter/search)
-    day_number = Column(
+    daily_event_id = Column(
         Integer,
-        nullable=True,
+        ForeignKey('daily_events.id', ondelete='CASCADE'),
+        nullable=False,
         index=True,
-        comment="Ngày ảo tương ứng (nếu có)"
+        comment="ID của sự kiện trong ngày (ForeignKey)"
     )
     
-    event_time = Column(
-        String(10),
-        nullable=True,
-        comment="Giờ của sự kiện (VD: '18:30')"
-    )
-    
-    story_summary = Column(
-        Text,
-        nullable=True,
-        comment="Tóm tắt câu chuyện (để tìm kiếm)"
+    # Relationship với daily_events
+    daily_event = relationship(
+        "DailyEvents",
+        back_populates="conversations"
     )
     
     def __repr__(self):
-        return f"<Conversation(id={self.id}, messages={len(self.messages) if self.messages else 0})>"
+        return f"<Conversation(id={self.id}, messages={len(self.messages) if self.messages else 0}, daily_event_id={self.daily_event_id})>"
     
     @property
     def total_messages(self) -> int:

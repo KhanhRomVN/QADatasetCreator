@@ -1,10 +1,9 @@
 import asyncio
-import random
-import uuid
 from datetime import datetime
 from sqlalchemy.orm import Session
 from typing import Optional
-
+import random
+from datetime import date
 from app.core.database import SessionLocal
 from app.services.ai import gemini_service
 from app.services import conversation_service, daily_events_service
@@ -24,14 +23,12 @@ class AutoDatasetGenerator:
     ) -> dict:
         """
         FLOW:
-        1. Tạo câu chuyện tóm tắt
-        2. Convert story → vector
-        3. Check trùng lặp (similarity > 0.85)
-        4. Nếu KHÔNG trùng:
-           - Lưu vector vào Pinecone
-           - Đưa story vào prompt
-           - Gemini tạo messages[]
-           - Lưu messages vào Neon
+        1. Lấy ngày hiện tại (hoặc tạo ngày mới)
+        2. Tạo ~32 sự kiện cho ngày đó
+        3. Với mỗi sự kiện:
+           - Tạo story chi tiết
+           - Tạo conversation từ story
+           - Lưu conversation vào DB
         
         Returns:
             dict: Thông tin về conversation đã tạo
@@ -41,11 +38,11 @@ class AutoDatasetGenerator:
         print(f"{'='*60}\n")
         
         try:
-            # ===== BƯỚC 1: Lấy current_day và tạo sự kiện hàng ngày =====
+            # ===== BƯỚC 1: Lấy ngày hiện tại =====
             print(f"\n📅 BƯỚC 1: Lấy thông tin ngày hiện tại...")
             
-            current_day = daily_events_service.get_current_day_number(db)
-            print(f"📆 Ngày hiện tại: Ngày {current_day}")
+            current_date = daily_events_service.get_current_date(db)
+            print(f"📆 Ngày hiện tại: {current_date.day:02d}/{current_date.month:02d}/{current_date.year}")
             
             # Lấy lịch sử 7 ngày trước
             history_context = daily_events_service.get_history_context(db, n=7)
@@ -53,87 +50,117 @@ class AutoDatasetGenerator:
             
             print(f"📚 Số năm đã sống chung: {years_together} năm")
             
-            # Tạo sự kiện cho ngày hiện tại
-            print(f"🎲 Đang tạo ~32 sự kiện cho Ngày {current_day}...")
-            daily_events = await gemini_service.generate_daily_events(
-                db=db,
-                day_number=current_day,
-                history_context=history_context,
-                years_together=years_together
+            # Kiểm tra xem ngày này đã có sự kiện chưa
+            existing_events = daily_events_service.get_daily_events(
+                db, 
+                current_date.day, 
+                current_date.month, 
+                current_date.year
             )
             
-            # Lưu sự kiện vào database
-            daily_events_service.save_daily_events(
-                db=db,
-                day_number=current_day,
-                events=daily_events
+            if not existing_events:
+                # Tạo sự kiện mới cho ngày này
+                print(f"🎲 Đang tạo ~32 sự kiện cho {current_date.day:02d}/{current_date.month:02d}/{current_date.year}...")
+                
+                season = daily_events_service.get_season_from_month(current_date.month)
+                
+                # Tạo thời tiết ngẫu nhiên
+                weather_options = ["sunny", "rainy", "cloudy", "windy", "partly_cloudy"]
+                weather = random.choice(weather_options)
+                temperature = random.randint(20, 35)
+                
+                daily_events_list = await gemini_service.generate_daily_events(
+                    db=db,
+                    current_date=current_date,
+                    history_context=history_context,
+                    years_together=years_together,
+                    season=season,
+                    weather=weather,
+                    temperature=temperature
+                )
+                
+                # Lưu sự kiện vào database
+                daily_events = daily_events_service.save_daily_events(
+                    db=db,
+                    day=current_date.day,
+                    month=current_date.month,
+                    year=current_date.year,
+                    season=season,
+                    events=daily_events_list,
+                    weather=weather,
+                    temperature=temperature
+                )
+                
+                print(f"✅ Đã tạo {len(daily_events_list)} sự kiện")
+            else:
+                daily_events = existing_events
+                daily_events_list = daily_events.events
+                print(f"♻️  Sử dụng {len(daily_events_list)} sự kiện đã có")
+            
+            # ===== BƯỚC 2: Chọn 1 sự kiện ngẫu nhiên =====
+            print(f"\n📝 BƯỚC 2: Chọn 1 sự kiện ngẫu nhiên...")
+            
+            selected_event = random.choice(daily_events_list)
+            event_start_time = selected_event.get('start_time', '12:00')
+            event_end_time = selected_event.get('end_time', '12:30')
+            event_summary = selected_event.get('event', '')
+            
+            print(f"  🎯 Sự kiện: {event_start_time}-{event_end_time}")
+            print(f"     {event_summary[:80]}...")
+            
+            # Tạo câu chuyện chi tiết từ sự kiện
+            start_date = date(2050, 1, 1)
+            day_number = (current_date - start_date).days + 1
+            story = await gemini_service.generate_story_from_event(
+                day_number=day_number,
+                event_time=event_start_time,
+                event_summary=event_summary
             )
             
-            print(f"✅ Đã tạo {len(daily_events)} sự kiện cho Ngày {current_day}")
+            # ===== BƯỚC 3: Tạo messages[] từ story =====
+            print(f"\n💬 BƯỚC 3: Tạo conversation từ story...")
             
-            # ===== BƯỚC 2: Duyệt qua TẤT CẢ sự kiện =====
-            print(f"\n📝 BƯỚC 2: Xử lý {len(daily_events)} sự kiện...")
+            messages = await gemini_service.generate_conversation_with_gemini(
+                db=db,
+                story_context=story
+            )
             
-            conversations_created = []
+            if not messages or not isinstance(messages, list):
+                print(f"  ⚠️  Gemini response không hợp lệ, bỏ qua")
+                return {
+                    "status": "failed",
+                    "error": "Invalid Gemini response"
+                }
             
-            for idx, selected_event in enumerate(daily_events, 1):
-                event_time = selected_event.get('time', '12:00')
-                event_summary = selected_event.get('event', '')
-                
-                print(f"\n  🎯 [{idx}/{len(daily_events)}] {event_time} - {event_summary[:50]}...")
-                
-                # Tạo câu chuyện chi tiết từ sự kiện
-                story = await gemini_service.generate_story_from_event(
-                    day_number=current_day,
-                    event_time=event_time,
-                    event_summary=event_summary
-                )
-                
-                # ===== BƯỚC 3: Tạo messages[] từ story =====
-                messages = await gemini_service.generate_conversation_with_gemini(
-                    db=db,
-                    story_context=story
-                )
-                
-                if not messages or not isinstance(messages, list):
-                    print(f"  ⚠️  Gemini response không hợp lệ, bỏ qua")
-                    continue
-                
-                print(f"  💬 Tạo được {len(messages)} messages")
-                
-                # ===== BƯỚC 4: Lưu vào Neon =====
-                conversation = conversation_service.save_conversation(
-                    db=db,
-                    messages=messages,
-                    day_number=current_day,
-                    event_time=event_time,
-                    story_summary=story[:500]  # Lưu tóm tắt 500 ký tự đầu
-                )
-                
-                conversations_created.append({
-                    "conversation_id": conversation.id,
-                    "event_time": event_time,
-                    "total_messages": len(messages),
-                    "story_summary": story[:100] + "..." if len(story) > 100 else story
-                })
-                
-                print(f"  ✅ Đã lưu conversation #{conversation.id}")
+            print(f"  ✅ Đã tạo {len(messages)} messages")
             
-            print(f"\n✅ HOÀN THÀNH NGÀY {current_day}!")
-            print(f"📊 Tổng conversations đã tạo: {len(conversations_created)}/{len(daily_events)}")
+            # ===== BƯỚC 4: Lưu vào Database =====
+            print(f"\n💾 BƯỚC 4: Lưu conversation vào database...")
+            
+            conversation = conversation_service.save_conversation(
+                db=db,
+                messages=messages,
+                daily_event_id=daily_events.id
+            )
+            
+            print(f"  ✅ Đã lưu conversation #{conversation.id}")
+            print(f"\n{'='*60}")
+            print(f"🎉 HOÀN THÀNH!")
             print(f"{'='*60}\n")
             
             return {
-                "day_number": current_day,
-                "total_events": len(daily_events),
-                "conversations_created": len(conversations_created),
-                "details": conversations_created,
+                "date": f"{current_date.day:02d}/{current_date.month:02d}/{current_date.year}",
+                "conversation_id": conversation.id,
+                "total_messages": len(messages),
+                "event_time": f"{event_start_time}-{event_end_time}",
                 "status": "success"
             }
             
         except Exception as e:
             print(f"\n❌ LỖI khi tạo conversation")
             print(f"❌ Chi tiết: {str(e)}\n")
+            import traceback
+            traceback.print_exc()
             return {
                 "status": "failed",
                 "error": str(e)
@@ -173,11 +200,9 @@ class AutoDatasetGenerator:
                     result = await self.generate_single_conversation(db=db)
                     
                     if result["status"] == "success":
-                        self.total_generated += result["conversations_created"]
+                        self.total_generated += 1
                         print(f"✅ Conversation #{count} đã lưu thành công!")
                         print(f"📊 Tổng conversations đã tạo: {self.total_generated}")
-                    elif result["status"] == "skipped":
-                        print(f"⏭️  Conversation #{count} bị bỏ qua: {result.get('reason', 'Unknown')}")
                     else:
                         print(f"❌ Conversation #{count} thất bại: {result.get('error', 'Unknown error')}")
                     
