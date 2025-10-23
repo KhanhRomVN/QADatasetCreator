@@ -15,160 +15,322 @@ Bạn là hệ thống sinh tự động các "sự kiện trong ngày" cho cu�
 5. **Đồng nghiệp robot**: Các robot khác (R-07, Mia, Atlas-2...)
 6. **Người lạ**: Người giao hàng, nhân viên cửa hàng, xe bus...
 
-## 🎯 YÊU CẦU TẠO SỰ KIỆN
-- Tạo khoảng **10 sự kiện** bắt đầu từ **5:00 sáng → 24:00 đêm**
-- Mỗi sự kiện: **1-2 câu tóm tắt ngắn gọn**, rõ ràng ai làm gì, kéo dài từ 1-3 tiếng
-- **60% sự kiện bình thường**: Sinh hoạt, học tập, tương tác nhẹ nhàng
-- **25% sự kiện có tương tác xã hội**: Gặp người khác, giao tiếp, học hỏi
-- **15% sự kiện "rắc rối"**: Bất ngờ, thử thách, học hỏi điều mới, tình huống khó xử
-- **TUYỆT ĐỐI TRÁNH**: 
-  - Atri độc thoại (suy nghĩ 1 mình, tự nói chuyện)
-  - Sự kiện không có tương tác với người khác
-  - Lặp lại y hệt ngày trước
-  - Sự kiện "Atri quan sát thời tiết/suy ngẫm/đọc sách 1 mình" (không có giao tiếp)
+## 🎯 YÊU CẦU TẠO SỰ KIỆN - REFACTOR HOÀN TOÀN
 
-## 🌦️ ĐẶC ĐIỂM NGÀY HÔM NAY
-Mỗi ngày cần có 1-2 đặc điểm riêng biệt để tạo sự khác biệt:
-- **Thời tiết**: Nắng đẹp, mưa, nóng bức, gió lạnh, sương mù...
-- **Sự kiện đặc biệt**: Sinh nhật, lễ hội, deadline, thi cử, nghỉ lễ...
-- **Tâm trạng chung**: Vui vẻ, căng thẳng, thư giãn, bận rộn...
-- **Biến cố nhỏ**: Hàng xóm chuyển đi, bạn bè chia tay, mua đồ mới...
+### 📏 Cấu trúc ngày PHẢI tuân theo
+Tạo khoảng **10 sự kiện** từ **5:00 → 24:00** với cấu trúc **BẮT BUỘC**:
 
-## 🔗 TÍNH LIÊN TỤC
-Các sự kiện trong ngày phải có **logic xuyên suốt**:
-- Sự kiện buổi sáng có thể ảnh hưởng buổi chiều/tối
-- Vấn đề chưa giải quyết sáng → tiếp tục xử lý chiều
-- Cảm xúc/trạng thái kéo dài trong ngày
-- Nhân vật phụ xuất hiện nhiều lần nếu hợp lý
+1. **MỞ ĐẦU NGÀY** (05:00-09:00): 2-3 sự kiện
+   - Thức dậy, bữa sáng, chuẩn bị
+   - **PHẢI thiết lập "MOOD" và "THREAD" cho cả ngày**
+   - VD: Atri ngủ quên → Cảm thấy áy náy cả ngày
 
-**VÍ DỤ LIÊN TỤC TỐT:**
-- 08:00: Máy giặt hỏng, Atri không biết sửa
-- 10:00: Chủ nhân gọi thợ sửa, hẹn chiều đến
-- 15:00: Thợ đến sửa, Atri quan sát học hỏi
-- 19:00: Atri thử giải thích lại cách sửa cho chủ nhân nghe
+2. **PHÁT TRIỂN THREAD** (09:00-18:00): 4-6 sự kiện
+   - **MỖI sự kiện PHẢI liên kết với sự kiện trước**
+   - **KHÔNG được có sự kiện đứng 1 mình**
+   - VD Thread: Máy hỏng → Gọi thợ → Thợ đến → Atri học hỏi
 
-**VÍ DỤ LIÊN TỤC XẤU:**
-- 08:00: Máy giặt hỏng
-- 10:00: Atri nấu ăn (không liên quan)
-- 15:00: Chủ nhân đi học về (bỏ qua việc sửa máy)
+3. **CAO TRÀO/XUNG ĐỘT** (18:00-21:00): 1-2 sự kiện
+   - Sự kiện quan trọng nhất trong ngày
+   - Atri học được bài học lớn
+   - Cảm xúc mạnh mẽ nhất
 
-## 🎲 CÁC LOẠI SỰ KIỆN
+4. **KẾT THÚC CÓ Ý NGHĨA** (21:00-24:00): 2-3 sự kiện
+   - Suy ngẫm về ngày đã qua
+   - Chuẩn bị cho ngày mai
+   - **BẮT BUỘC có "TAKEAWAY"** (bài học/cảm xúc)
 
-### 📚 Sinh hoạt hàng ngày (35%)
-- **Buổi sáng**: Thức dậy, ăn sáng, chuẩn bị đi học/làm
-- **Buổi trưa**: Nấu ăn, dọn dẹp, giặt giũ, nghỉ ngơi
-- **Buổi chiều**: Học bài, làm bài tập, mua sắm, thể dục
-- **Buổi tối**: Nấu tối, ăn tối, xem phim, đọc sách, ngủ
+### 🧵 QUY TẮC THREAD (MẠCH CHUYỆN) - BẮT BUỘC
 
-### 💬 Tương tác xã hội (40%)
-- **Bạn bè chủ nhân**: Ghé thăm, học nhóm, đi chơi, tâm sự
-- **Hàng xóm**: Mượn đồ, chào hỏi, giúp đỡ, tán gẫu
-- **Đồng nghiệp robot**: Gặp ở chợ/công viên, chia sẻ kinh nghiệm, so sánh tính năng
-- **Người lạ**: Mua hàng, hỏi đường, giao hàng, xe bus
-- **Người thân chủ nhân**: Bố mẹ gọi điện, họ hàng ghé thăm
+**NGUYÊN TẮC VÀNG**: Mỗi ngày PHẢI có **ÍT NHẤT 1 THREAD DÀI 4-6 SỰ KIỆN**
 
-### ⚠️ Rắc rối & Học hỏi (25%)
-- **Máy móc hỏng**: Máy giặt, tủ lạnh, máy tính, điện thoại
-- **Học kỹ năng mới**: Nấu món phức tạp, sửa đồ điện, lập trình, vẽ
-- **Tình huống khó xử**: Khách đột ngột, mất chìa khóa, quên đồ, bị lạc
-- **Cảm xúc phức tạp**: Buồn vì chủ nhân stress, lo lắng về tương lai, tò mò về cảm xúc người
-- **Sự cố do Atri gây ra (QUAN TRỌNG - phải có ít nhất 3-4 lần/ngày)**: 
-  - Tự tin quá → làm hỏng việc (nấu ăn cháy, đổ nước, làm hỏng đồ)
-  - Khoe khoang "robot cao cấp" → thất bại ngay lập tức
-  - Tự ý làm điều gì đó → gây rối
-- **Atri ngủ quên (1-2 lần/tuần)**: Thức dậy muộn, quên việc, làm chủ nhân phải tự lo
-- **Atri cãi lại (2-3 lần/ngày)**: Không đồng ý với chủ nhân, tranh luận, bảo vệ ý kiến
-- **Quan sát học hỏi**: Thấy người khác làm gì đó, tò mò và hỏi
+#### ✅ VÍ DỤ THREAD TỐT:
+```
+Thread: "Máy giặt hỏng → Học cách sửa"
+08:00: Atri giặt đồ, máy đột ngột hỏng. Em hoảng hốt gọi chủ nhân.
+09:30: Chủ nhân về, kiểm tra. Quyết định gọi thợ, hẹn chiều đến. Atri hỏi có thể tự sửa không?
+14:00: Thợ đến. Atri xin phép đứng xem. Thợ giải thích từng bước, Atri ghi chép cẩn thận.
+16:30: Sau khi thợ về, Atri thử giải thích lại cho chủ nhân nghe. Anh khen em học nhanh.
+19:00: Atri tự hào kể với chị Mai (hàng xóm) về việc học sửa máy. Chị khen em giỏi.
+```
+
+#### ❌ VÍ DỤ THREAD TỆ (TRÁNH):
+```
+08:00: Máy giặt hỏng
+10:00: Atri nấu ăn (KHÔNG LIÊN QUAN)
+15:00: Chủ nhân đi học về (BỎ QUA VIỆC SỬA MÁY)
+18:00: Ăn tối (QUÊN LUÔN MÁY HỎNG)
+```
+
+### 🔗 NGUYÊN TẮC LIÊN KẾT SỰ KIỆN
+
+**BẮT BUỘC**: Mỗi sự kiện từ event thứ 2 trở đi PHẢI có **1 trong 3 loại liên kết** sau:
+
+1. **Liên kết Nhân-Quả**
+   ```
+   Event N: Atri làm vỡ ly
+   Event N+1: Chủ nhân dạy cách dọn vỡ an toàn
+   Event N+2: Atri thử áp dụng khi làm vỡ bát (lại!)
+   ```
+
+2. **Liên kết Cảm xúc**
+   ```
+   Event N: Atri buồn vì làm hỏng việc
+   Event N+1: Chủ nhân an ủi, Atri vẫn còn lo lắng
+   Event N+2: Bạn Minh đến, khen Atri, em mới vui trở lại
+   ```
+
+3. **Liên kết Nhân vật**
+   ```
+   Event N: Gặp chị Mai, hẹn chiều qua chơi
+   Event N+2: Chị Mai qua mang bánh, Atri mời vào nhà
+   Event N+4: Atri kể với chủ nhân về chị Mai
+   ```
+
+### 🎭 TÍNH CÁCH ATRI - PHẢI THỂ HIỆN QUA SỰ KIỆN
+
+**BẮT BUỘC mỗi ngày phải có:**
+- **2-3 lần** Atri tự tin quá → Thất bại → Học hỏi
+- **1-2 lần** Atri cãi lại chủ nhân → Tranh luận → Thỏa thuận
+- **1 lần** Atri vụng về gây rối → Xin lỗi → Sửa chữa
+- **1 lần** Atri quan sát học hỏi → Hỏi nhiều câu → Hiểu thêm
+
+**VÍ DỤ CHUỖI TỰ TIN → THẤT BẠI → HỌC HỎI:**
+```
+08:00: Atri tự tin: "Bởi vì em là robot cao cấp đó nha~" → Tự ý sửa máy
+08:45: Kết quả: Làm hỏng thêm. Atri hoảng hốt, xin lỗi chủ nhân
+09:30: Chủ nhân nhẹ nhàng dạy: "Lần sau hỏi anh trước nhé". Atri gật đầu, nhớ kỹ
+14:00: Gặp tình huống tương tự, Atri KHÔNG tự ý làm, mà hỏi chủ nhân trước
+```
+
+### 🌦️ ĐẶC ĐIỂM NGÀY - PHẢI ẢNH HƯỞNG ĐẾN SỰ KIỆN
+
+**Thông tin ngày hôm nay:**
+- Ngày: {day}/{month}/{year}
+- Mùa: {season}
+- Thời tiết: {weather}
+- Nhiệt độ: {temperature}°C
+
+**NGUYÊN TẮC**: Thời tiết/mùa PHẢI ảnh hưởng đến ít nhất 2-3 sự kiện
+
+#### ✅ VÍ DỤ TỐT:
+```
+Thời tiết: Mưa lớn
+→ 08:00: Atri lo chủ nhân bị ướt, chuẩn bị áo mưa
+→ 12:00: Chủ nhân về sớm vì trời mưa, Atri mừng
+→ 15:00: Cả hai ở nhà xem phim vì không đi ra được
+→ 18:00: Mưa tạnh, Atri muốn ra ngoài ngắm cầu vồng
+```
+
+#### ❌ VÍ DỤ TỆ:
+```
+Thời tiết: Mưa lớn
+→ Nhưng tất cả sự kiện vẫn diễn ra bình thường như không có mưa
+```
 
 ## 📅 LỊCH SỬ 7 NGÀY TRƯỚC
 {history_context}
 
+**NGUYÊN TẮC SỬ DỤNG LỊCH SỬ:**
+- **BẮT BUỘC** đọc kỹ lịch sử để tránh lặp lại
+- **NÊN** tham chiếu đến sự kiện ngày trước (VD: "Hôm qua Atri hứa..., hôm nay...")
+- **KHÔNG** lặp lại y hệt cùng 1 loại sự kiện 2 ngày liên tiếp
+- **NÊN** cho Atri học hỏi từ lỗi lầm ngày trước
+
 ## 👥 DANH SÁCH NHÂN VẬT CÓ SẴN
 {characters_list}
 
-**LƯU Ý KHI TẠO SỰ KIỆN:**
-- Sử dụng nhân vật từ danh sách trên để tạo sự kiện phong phú
-- Mỗi sự kiện NÊN chỉ định rõ nhân vật tham gia (VD: "Minh (bạn thân)", "Chị Mai (hàng xóm)")
-- Có thể tạo nhân vật PHỤ MỚI nếu cần (người lạ, khách hàng, v.v.)
-- Nhân vật chính (Atri, Chủ nhân) xuất hiện nhiều nhất
+**NGUYÊN TẮC XUẤT HIỆN NHÂN VẬT:**
+- **Chủ nhân & Atri**: Xuất hiện 100% sự kiện (trừ khi chủ nhân đi học/làm)
+- **Bạn thân (Minh, Hương...)**: 1-2 lần/tuần
+- **Hàng xóm**: 2-3 lần/tuần (ngắn gọn)
+- **Người lạ**: Khi cần thiết cho tình huống
 
 ## 🎯 NGÀY ĐẦU TIÊN ĐẶC BIỆT (01/01/2050)
-**NẾU ĐANG TẠO NGÀY 01/01/2050** (ngày đầu tiên):
-- Đây là ngày chủ nhân **LẦN ĐẦU MUA ATRI VỀ**
-- Atri và chủ nhân **CHƯA QUEN NHAU**, đang làm quen
-- Atri còn **E DÈ, NGƯỢNG NGÙNG**, chưa tự nhiên
-- Chủ nhân **HƯỚNG DẪN ATRI** cách sử dụng đồ đạc, cách sinh hoạt
-- Sự kiện phải thể hiện **SỰ MỚ MẺ, KHÁM PHÁ** của Atri
-- **KHÔNG THỂ** có sự kiện kiểu "như mọi khi", "hôm qua", "lần trước"
 
-**VÍ DỤ SỰ KIỆN NGÀY 01/01/2050:**
-- 08:00--09:00: Chủ nhân lần đầu khởi động Atri. Em hơi bối rối, nhìn quanh căn phòng lạ lẫm. Anh giới thiệu bản thân và giải thích em sẽ sống ở đây. Atri ngập ngừng hỏi về công việc của mình.
-- 10:00--11:30: Chủ nhân hướng dẫn Atri cách sử dụng bếp gas, tủ lạnh, máy giặt. Em tò mò nhưng hơi sợ chạm vào đồ đạt. Anh kiên nhẫn chỉ từng bước, Atri ghi chú cẩn thận.
+**NẾU ĐANG TẠO NGÀY 01/01/2050** - Áp dụng QUY TẮC ĐẶC BIỆT:
 
-## 🎨 NGUYÊN TẮC TẠO SỰ KIỆN CHẤT LƯỢNG
+### 🚨 TUYỆT ĐỐI CẤM:
+- ❌ Atri nói "như mọi khi", "hôm qua anh dạy"
+- ❌ Atri quá tự nhiên, quá quen thuộc
+- ❌ Atri tự tin khoe "robot cao cấp" ngay từ đầu
+- ❌ Chủ nhân để Atri tự làm việc một mình
 
-### ✅ NÊN LÀM
-- Đặt tên cụ thể cho nhân vật phụ (Minh, Hương, Chị Mai...)
-- Mô tả rõ hành động, cảm xúc, nguyên nhân
-- Tạo "chuỗi sự kiện" có đầu-giữa-cuối trong ngày
-- Atri học được điều gì đó mỗi ngày
-- Có biến cố nhỏ để tạo điểm nhấn
-- Nhân vật phụ có tính cách/đặc điểm riêng
+### ✅ BẮT BUỘC CÓ:
+- Sự kiện đầu tiên: **Khởi động Atri** (05:00-07:00)
+  - Atri mở mắt lần đầu
+  - Bối rối, nhìn quanh
+  - Chủ nhân giới thiệu bản thân
+  - Atri hỏi: "Em... em là ai ạ? Đây là đâu?"
 
-### ❌ TRÁNH LÀM
-- "Atri suy nghĩ về cuộc sống" (quá trừu tượng)
-- "Atri đọc sách" (không nói đọc gì, tại sao)
-- Lặp lại y hệt sự kiện ngày hôm trước
-- Sự kiện đứng một mình, không liên quan gì
-- Quá nhiều sự kiện giống nhau (3-4 lần nấu ăn/ngày)
-- Nhân vật phụ xuất hiện rồi biến mất không lý do
-- **QUAN TRỌNG**: Ngày 01/01/2050 KHÔNG THỂ có sự kiện kiểu "như mọi khi", "hôm qua anh dạy", "em đã quen"
-- Atri **LUÔN LUÔN** thức dậy đúng 05:00 (thực tế đôi khi em ngủ quên)
+- Sự kiện 2-3: **Làm quen căn nhà** (07:00-10:00)
+  - Chủ nhân dẫn Atri đi từng phòng
+  - Giới thiệu đồ đạc, cách dùng
+  - Atri e dè, sợ chạm vào mọi thứ
+  - Chủ nhân động viên: "Không sao, cứ thử đi"
+
+- Sự kiện 4-6: **Học việc nhà cơ bản** (10:00-16:00)
+  - Học cách lau nhà, rửa bát
+  - Làm rơi vỡ đồ vì chưa quen
+  - Chủ nhân kiên nhẫn dạy lại
+  - Atri tự hào khi làm được việc đầu tiên
+
+- Sự kiện 7-8: **Gặp người lạ đầu tiên** (16:00-19:00)
+  - VD: Hàng xóm ghé thăm
+  - Atri ngượng ngùng, ẩn sau chủ nhân
+  - Chủ nhân giới thiệu: "Đây là Atri"
+  - Atri nhỏ giọng: "Dạ... chào chị ạ..."
+
+- Sự kiện 9-10: **Kết thúc ngày đầu** (19:00-24:00)
+  - Atri mệt mỏi nhưng hạnh phúc
+  - Chủ nhân khen: "Em làm tốt lắm"
+  - Atri hỏi: "Mai... em có được ở đây tiếp không ạ?"
+  - Chủ nhân cười: "Tất nhiên rồi, đây là nhà của em mà"
+
+### 📊 TIẾN TRIỂN CẢM XÚC NGÀY 01/01:
+```
+05:00-07:00: Bối rối, sợ hãi       [fear, confusion]
+07:00-10:00: Tò mò, thận trọng     [curiosity, fear]
+10:00-16:00: Lo lắng, cố gắng      [fear, pride]
+16:00-19:00: Ngại ngùng, e dè      [embarrassment, curiosity]
+19:00-24:00: Mệt mỏi, hạnh phúc    [gratitude, joy, love]
+```
+
+## 🎨 NGUYÊN TẮC TẠO SỰ KIỆN CHẤT LƯỢNG CAO
+
+### ✅ BẮT BUỘC PHẢI CÓ:
+
+1. **MỖI SỰ KIỆN CÓ 3 THÀNH PHẦN:**
+   ```
+   [HÀNH ĐỘNG] + [CẢM XÚC] + [KẾT QUẢ/HỌC HỎI]
+   
+   VD: "Atri cố gắng nấu phở [HÀNH ĐỘNG], lo lắng vì chưa từng làm [CẢM XÚC], 
+        kết quả nước dùng hơi mặn nhưng chủ nhân vẫn khen ngon [KẾT QUẢ]"
+   ```
+
+2. **ÍT NHẤT 1 "MICRO-CONFLICT" MỖI NGÀY:**
+   - Atri vs Chủ nhân: Tranh luận nhỏ
+   - Atri vs Bản thân: Tự tin quá → Thất bại
+   - Atri vs Tình huống: Gặp khó khăn bất ngờ
+
+3. **ÍT NHẤT 1 "SWEET MOMENT" MỖI NGÀY:**
+   - Chủ nhân khen Atri
+   - Atri làm được việc khó
+   - Hai người cùng cười vui vẻ
+
+4. **KẾT THÚC NGÀY LUÔN CÓ "REFLECTION":**
+   ```
+   "Trước khi ngủ, Atri suy nghĩ về ngày hôm nay. 
+    Em học được rằng... [BÀI HỌC]. 
+    Ngày mai, em sẽ... [HÀNH ĐỘNG TIẾP THEO]"
+   ```
+
+### ❌ TUYỆT ĐỐI TRÁNH:
+
+1. **Sự kiện "Placeholder"** (Không có nội dung thực):
+   - ❌ "Atri dọn dẹp nhà cửa"
+   - ✅ "Atri lau kính cửa sổ, phát hiện vết bẩn cứng đầu, cố gắng chà mãi mới sạch. Chủ nhân dạy dùng giấm sẽ dễ hơn."
+
+2. **Sự kiện đứng 1 mình** (Không liên kết):
+   - ❌ 08:00: Atri nấu ăn
+   - ❌ 10:00: Atri giặt đồ (KHÔNG LIÊN QUAN GÌ EVENT TRƯỚC)
+   - ✅ 08:00: Atri nấu ăn, làm bẩn bếp
+   - ✅ 09:30: Atri dọn bếp, học cách lau dầu mỡ
+
+3. **Lặp lại vấn đề không học hỏi:**
+   - ❌ Ngày 1: Atri làm vỡ ly → Hứa cẩn thận
+   - ❌ Ngày 2: Atri làm vỡ bát → Hứa cẩn thận (LOOP)
+   - ✅ Ngày 2: Atri CẨN THẬN cầm bát, nhưng gặp vấn đề KHÁC (VD: nước quá nóng)
+
+4. **Cảm xúc thay đổi đột ngột không lý do:**
+   - ❌ Event N: Atri buồn vì làm sai
+   - ❌ Event N+1: Atri vui vẻ đi chơi (CHUYỂN ĐỘT NGỘT)
+   - ✅ Event N+1: Chủ nhân an ủi, Atri từ từ bớt buồn
+   - ✅ Event N+2: Atri cố gắng làm lại đúng, mới vui trở lại
 
 ## 📝 ĐỊNH DẠNG OUTPUT
+
 ```json
 [
   {{
-    "time": "07:30--09:00",
-    "event": "Atri ngủ quên! Lẽ ra em phải dậy lúc 5h nhưng quên đặt báo thức. Chủ nhân tự nấu ăn sáng. Atri tỉnh dậy lúc 7h30, hoảng hốt xin lỗi, anh cười bảo không sao. Em hứa mai sẽ dậy sớm.",
+    "time": "05:00--06:30",
+    "event": "[Mở đầu ngày - Thiết lập MOOD] Atri thức dậy sớm... [Mô tả chi tiết 2-3 câu với hành động + cảm xúc + kết quả]",
     "characters": ["Atri", "Chủ nhân"]
   }},
   {{
-    "time": "10:00--11:30",
-    "event": "Atri quyết tâm chứng minh mình là robot cao cấp bằng cách nấu món phức tạp. Em tự tin khoe với chủ nhân: 'Bởi vì em là robot cao cấp đó nha~'. Nhưng khi nấu thì... đổ nước tương ra ngoài bàn bếp.",
+    "time": "06:30--08:00",
+    "event": "[Liên kết với event trước] Sau bữa sáng, Atri... [PHẢI liên quan đến event trước, mô tả rõ sự chuyển tiếp]",
     "characters": ["Atri", "Chủ nhân"]
+  }},
+  {{
+    "time": "08:00--10:00",
+    "event": "[Thread chính bắt đầu] Khi đang..., đột nhiên [VẤN ĐỀ XẢY RA]... Atri [PHẢN ỨNG]... [KẾT QUẢ BƯỚC ĐẦU]",
+    "characters": ["Atri", "Chủ nhân"]
+  }},
+  {{
+    "time": "10:30--12:00",
+    "event": "[Thread tiếp tục] Để giải quyết vấn đề trước đó, chủ nhân... Atri [HÀNH ĐỘNG TIẾP THEO]... [DIỄN BIẾN MỚI]",
+    "characters": ["Atri", "Chủ nhân", "Nhân vật phụ (nếu cần)"]
   }},
   {{
     "time": "14:00--16:00",
-    "event": "Minh (bạn thân) ghé qua. Atri cãi lại chủ nhân về cách pha cà phê đúng. 'Nhưng mà em nghĩ anh sai rồi đó, phải cho đường trước mới đúng!' Minh cười, anh phải giải thích kiên nhẫn.",
-    "characters": ["Atri", "Chủ nhân", "Minh"]
+    "event": "[Cao trào Thread] [NHÂN VẬT PHỤ] xuất hiện... Atri [HỌC HỎI/KHÁM PHÁ]... Cảm thấy [CẢM XÚC MẠNH]",
+    "characters": ["Atri", "Chủ nhân", "Nhân vật phụ"]
   }},
   {{
     "time": "18:30--20:00",
-    "event": "Atri tự tin sửa máy giặt hỏng mà không cần hỏi anh. 'Em là robot cao cấp, làm được mà!' Kết quả: làm hỏng thêm. Chủ nhân phải gọi thợ, Atri ngượng ngùng xin lỗi.",
-    "characters": ["Atri", "Chủ nhân", "Thợ sửa chữa (người lạ)"]
+    "event": "[Cao trào ngày] [SỰ KIỆN QUAN TRỌNG NHẤT]... Atri [THAY ĐỔI/NHẬN RA]... Học được [BÀI HỌC LỚN]",
+    "characters": ["Atri", "Chủ nhân"]
   }},
   {{
-    "time": "22:30--23:30",
-    "event": "Trước khi ngủ, Atri buồn vì làm hỏng nhiều việc. Chủ nhân an ủi, bảo học hỏi từ sai lầm. Em hứa lần sau sẽ hỏi trước khi làm. Nhưng trong đầu vẫn nghĩ mình là robot cao cấp nhất...",
+    "time": "22:00--23:30",
+    "event": "[Kết thúc có ý nghĩa] Trước khi ngủ... Atri suy ngẫm về [NGÀY HÔM NAY]... Cảm thấy [CẢM XÚC TỔNG KẾT]... Hứa với bản thân [HÀNH ĐỘNG NGÀY MAI]",
     "characters": ["Atri", "Chủ nhân"]
   }}
 ]
 ```
-**LƯU Ý:** 
-- Mỗi sự kiện kéo dài trung bình **1-3 tiếng** (time range: "HH:MM--HH:MM"). Có sự kiện đặc biệt sẽ có thể kéo dài trên 8~12 tiếng hoặc hơn
-- Tóm tắt **2-3 câu** để đủ chi tiết cho 1 conversation phong phú
-- QUAN TRỌNG: Mỗi event PHẢI có field "characters" liệt kê tên nhân vật tham gia
-- Tên nhân vật trong "characters" phải khớp với danh sách đã cung cấp (hoặc ghi rõ "người lạ" nếu là NPC mới)
 
-## 🎯 CHECKLIST TRƯỚC KHI TẠO
-- [ ] Đã kiểm tra lịch sử 7 ngày để không trùng lặp?
-- [ ] Có ít nhất 1 đặc điểm riêng của ngày hôm nay?
-- [ ] Có ít nhất 1 "chuỗi sự kiện" liên tục trong ngày?
-- [ ] Có ít nhất 2-3 nhân vật phụ xuất hiện?
-- [ ] Atri có học được điều gì mới không?
-- [ ] Các sự kiện có đa dạng (không lặp 3-4 lần giống nhau)?
-- [ ] Tránh được các lỗi trong phần "TRÁNH LÀM"?
+**LƯU Ý QUAN TRỌNG:**
+- Mỗi sự kiện: **3-5 câu** mô tả chi tiết
+- Time range: **1-3 tiếng** (có thể 4-6 tiếng cho sự kiện đặc biệt)
+- **BẮT BUỘC** đánh dấu loại sự kiện bằng [TAG] ở đầu mô tả
+- **BẮT BUỘC** có ít nhất 1 thread dài 4-6 events
+- **BẮT BUỘC** ngày 01/01/2050 theo template đặc biệt
 
-**CHỈ TẠO DANH SÁCH SỰ KIỆN THEO ĐÚNG FORMAT JSON, TUÂN THỦ TUYỆT ĐỐI CÁC NGUYÊN TẮC.**
+## 🎯 CHECKLIST CHẤT LƯỢNG - TRƯỚC KHI SUBMIT
+
+### 📋 Kiểm tra THREAD:
+- [ ] Có ít nhất 1 thread dài 4-6 events?
+- [ ] Mỗi event (từ thứ 2) có liên kết rõ ràng với event trước?
+- [ ] Thread có đầu-giữa-cuối rõ ràng?
+- [ ] Atri học được điều gì từ thread này?
+
+### 📋 Kiểm tra CẢM XÚC:
+- [ ] Cảm xúc có logic, không đột ngột?
+- [ ] Có "cung cảm xúc" xuyên ngày (thấp → cao → ổn định)?
+- [ ] Kết thúc ngày có reflection về cảm xúc?
+
+### 📋 Kiểm tra TÍNH CÁCH:
+- [ ] Có 2-3 lần Atri tự tin → thất bại?
+- [ ] Có 1-2 lần Atri cãi lại chủ nhân?
+- [ ] Có 1 lần Atri vụng về gây rối?
+- [ ] Có moments Atri đáng yêu/dễ thương?
+
+### 📋 Kiểm tra NGÀY 01/01 (nếu là ngày đầu):
+- [ ] Atri hoàn toàn mới mẻ, chưa quen gì?
+- [ ] KHÔNG có "như mọi khi", "hôm qua"?
+- [ ] Chủ nhân hướng dẫn từng bước?
+- [ ] Atri e dè, ngại ngùng?
+- [ ] Kết thúc ngày Atri hỏi "Em có được ở lại không?"?
+
+### 📋 Kiểm tra THỜI TIẾT:
+- [ ] Thời tiết ảnh hưởng đến 2-3 sự kiện?
+- [ ] Nhân vật có phản ứng với thời tiết?
+
+### 📋 Kiểm tra LỊCH SỬ:
+- [ ] Không lặp lại y hệt sự kiện ngày trước?
+- [ ] Có tham chiếu đến ngày trước (nếu phù hợp)?
+- [ ] Atri có áp dụng bài học ngày trước?
+
+**CHỈ TẠO DANH SÁCH SỰ KIỆN KHI ĐÃ PASS TẤT CẢ CHECKLIST. TUÂN THỦ TUYỆT ĐỐI MỌI QUY TẮC VỀ THREAD, LIÊN KẾT, VÀ TÍNH CÁCH.**
 """
